@@ -3,7 +3,7 @@
 Items included in the project: 
 
 ## data directory ##
-contains the following data files:
+Contains the following data files:
 1. a_sites_geo.csv - This file contains the master gazetteer of archaeological, historical, and geographical sites referenced throughout the database. It includes site names, alternative names, geographic coordinates, elevation data, and unique identifiers used to spatially link earthquake damage and environmental effects records.
 
 2. v_damage_dst_reliable.csv - This dataset contains reliable and moderately reliable records of earthquake-related damage within the Dead Sea Transform (DST) region. The file includes information on affected sites, damage severity, casualties, intensity estimates (EMS-98/MSK), geographic coordinates, and descriptive historical or archaeological evidence.
@@ -25,12 +25,12 @@ contains the following data files:
 
 
 ## python directory ##
-contains the following files:
+Contains the following files:
 
 1. statistical_overview.ipynb - This Jupyter Notebook provides a simple exploratory statistical overview of the historical earthquake database and its associated datasets. The notebook includes basic descriptive statistics, temporal distributions, magnitude and intensity summaries, and spatial visualizations for earthquake events, damage records, environmental effects, and site locations across the Dead Sea Transform region and adjacent areas. This notebook was created using ChatGPT
 
 
 
-## other files ##
+## Other files ##
 
 1. db-schema-ve2.jpg - schema of database version 2
