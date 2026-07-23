@@ -1,2 +1,6 @@
-delete_file_en.py
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+.DS_Store
+Thumbs.db
 desktop.ini

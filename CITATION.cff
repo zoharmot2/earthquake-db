@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: "Historical Earthquake Database"
+message: "If you use this database in your research, please cite it using the metadata below."
+type: dataset
+
+authors:
+  - family-names: "Zohar"
+    given-names: "Motti"
+
+version: "1.0.2"
+doi: "10.5281/zenodo.20442318"
+repository-code: "https://github.com/zoharmot2/earthquake-db-1.0"
+license: "CC-BY-4.0"
+
+keywords:
+  - historical earthquakes
+  - historical seismology
+  - archaeoseismology
+  - GIS
+  - Dead Sea Transform
+  - Levant
+  - earthquake database
+
+abstract: >
+  Harmonized geospatial database of historical earthquake events,
+  historical damage observations, environmental effects,
+  and affected archaeological and historical sites
+  in the Dead Sea Transform region.
