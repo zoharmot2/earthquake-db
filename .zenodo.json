@@ -1,0 +1,41 @@
+{
+  "title": "Historical Earthquake Database of the Dead Sea Transform Region",
+  "description": "This repository provides a harmonized geospatial database of historical earthquakes affecting the Dead Sea Transform and adjacent regions. The database integrates historical documentary evidence, archaeological observations, environmental earthquake effects, and geographic information into a standardized relational structure suitable for historical seismology, archaeoseismology, Historical GIS, and interdisciplinary geoscientific research. The release includes historical earthquake catalogues, earthquake damage observations, environmental effects, a historical and archaeological site gazetteer, and a statistical analysis notebook. The project is openly available through GitHub and permanently archived in Zenodo to support reproducibility, versioning, and persistent citation.",
+  "upload_type": "dataset",
+  "access_right": "open",
+  "license": "cc-by-4.0",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "Zohar, Motti",
+      "orcid": "0000-0002-6567-7296",
+      "affiliation": "School of Environmental Sciences, University of Haifa"
+    },
+    {
+      "name": "Adi, Ofir",
+      "orcid": "0009-0003-3450-8689",
+      "affiliation": "School of Environmental Sciences, University of Haifa"
+    },
+    {
+      "name": "Williams, Jefferson",
+      "orcid": "0000-0002-2737-2635",
+      "affiliation": "School of Environmental Sciences, University of Haifa"
+    }
+  ],
+  "keywords": [
+    "Historical earthquakes",
+    "Historical seismology",
+    "Archaeoseismology",
+    "Historical GIS",
+    "GIS",
+    "Dead Sea Transform",
+    "Levant",
+    "Eastern Mediterranean",
+    "Earthquake database",
+    "Natural hazards",
+    "Open data",
+    "Cultural heritage",
+    "Historical geography"
+  ],
+  "notes": "This repository is actively maintained. Each release is archived through Zenodo and linked to the corresponding GitHub release to support long-term reproducibility and persistent citation."
+}
