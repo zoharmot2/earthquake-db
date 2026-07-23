@@ -1,7 +1,6 @@
-delete_file_en.py
-desktop.ini
-Thumbs.db
-.DS_Store
 __pycache__/
-*.py[cod]
 .ipynb_checkpoints/
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini
