@@ -1,28 +1,19 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-## [1.0.2] - 2026-07-23
+## v1.1.0
 
 ### Added
-- Added CITATION.cff.
-- Added CHANGELOG.md.
-- Added repository configuration files.
+- Interactive Leaflet web map.
+- Direct client-side CSV loading.
+- Three selectable basemaps.
+- Shared confidence filter.
+- Improved popups and legend.
 
 ### Changed
-- Rewritten and simplified README.
-- Updated repository metadata.
+- New site title: Dead Sea Transform Historical Earthquakes.
+- Updated documentation.
+- Refined user interface.
 
 ### Fixed
-- Repository housekeeping.
-- Standardized text file line endings.
-
-## [1.0.1]
-
-### Changed
-- Minor repository update.
-
-## [1.0.0]
-
-### Added
-- Initial public release of the Historical Earthquake Database.
+- Data integrity verification.
+- Confidence handling supporting both U and Unknown.
