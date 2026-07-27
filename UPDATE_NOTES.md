@@ -1,29 +1,55 @@
-# earthquake-db v1.1 Review — Update 03 (corrected)
+# earthquake-db v1.1 — Real correction package
 
-## Implemented changes
+Status: **Review update only**. This package does not close or release v1.1.
 
-### Confidence filter
-- Uses a fixed list of values so `Unknown` is always visible.
-- `All` is aligned with the left column.
-- Left column: Poor, Doubtful, Unknown.
-- Right column: Moderate, High, Very High.
-- `Unknown` filters the underlying CSV value `U`.
+## Replace these files
 
-### Popup
-- Removes the thematic layer label at the top.
-- Removes the earthquake count label from the popup header.
-- Removes event number and event label from earthquake headings.
-- Displays only the earthquake date for each earthquake section.
-- Shows earthquake sections one after another in a vertically scrollable popup.
-- Highlights the Confidence field.
-- Offsets the popup slightly right and upward while retaining Leaflet auto-pan.
-
-### Legend
-- Damage retains occurrence-size classes.
-- Environmental Effects retain effect-type symbology only.
-
-## Files
+- `index.html`
 - `js/map-app.js`
+- `js/popup-renderer.js`
 - `css/map.css`
 
-This is a review update for v1.1, not a stable release.
+The QA report is supplied as:
+- `docs/v1.1-correction-qa.json`
+
+## Implemented corrections
+
+### Confidence filter
+- Uses a fixed scale instead of deriving the interface from the current data.
+- `All` is aligned with the left column.
+- Left column, top to bottom: Poor, Doubtful, Unknown.
+- Right column, top to bottom: Moderate, High, Very High.
+- Both `U` and `Unknown` are treated as the displayed/filter value `Unknown`.
+- The two-column arrangement is retained on narrow screens.
+
+### Popup
+- Removes the thematic layer label.
+- Removes the earthquake count and occurrence count from the popup header.
+- Removes event ID and event label from earthquake headings.
+- Displays only the earthquake date as stored in the data.
+- Displays earthquake sections sequentially in one vertically scrollable popup.
+- Visually emphasizes the Confidence field.
+- Offsets the popup slightly right and upward while retaining Leaflet auto-pan and keep-in-view behavior.
+
+### Legend
+- Earthquake Damage retains occurrence-size classes.
+- Environmental Effects show only effect-type color symbology, without occurrence-size classes.
+
+### About dialog
+- Updated to describe the fixed shared Confidence scale.
+- Updated to describe the scrollable date-only earthquake sections.
+- Clarifies that environmental occurrence-size classes are not repeated in the legend.
+
+## QA completed
+
+- JavaScript syntax checks passed for all three JS modules.
+- 1,001 sites, 389 events, 1,298 damage records, and 241 environmental records checked.
+- No missing or invalid site links.
+- No missing or invalid event links.
+- All six Confidence values occur in the current datasets.
+- Browser-based visual testing is still required before v1.1 Stable.
+
+
+### Site title
+- Updated the browser/page title to `Dead Sea Transform Historical Earthquakes`.
+- Updated the main visible site heading to `Dead Sea Transform Historical Earthquakes`.

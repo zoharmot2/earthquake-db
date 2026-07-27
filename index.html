@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Interactive map of historical earthquake damage and environmental effects in the Dead Sea Transform region.">
-  <title>earthquake-db — Interactive Map</title>
+  <title>Dead Sea Transform Historical Earthquakes</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="preconnect" href="https://tile.openstreetmap.org">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -13,7 +13,7 @@
 <body>
 <div class="app-shell">
   <header class="site-header">
-    <div><p class="eyebrow">earthquake-db v1.1</p><h1>Historical Earthquake Effects Map</h1><p class="subtitle">Damage and environmental effects in the Dead Sea Transform region</p></div>
+    <div><p class="eyebrow">earthquake-db v1.1</p><h1>Dead Sea Transform Historical Earthquakes</h1><p class="subtitle">Damage and environmental effects in the Dead Sea Transform region</p></div>
     <button id="about-button" class="secondary-button" type="button">About the data</button>
   </header>
 
@@ -47,9 +47,9 @@
 
 <dialog id="about-dialog"><form method="dialog"><div class="dialog-header"><h2>About the data</h2><button class="dialog-close" value="close" aria-label="Close">×</button></div>
   <p>The accumulated map loads the repository CSV files directly in the browser: <code>v_sites_geo.csv</code>, <code>v_events_dst.csv</code>, <code>v_damage_dst_unified.csv</code>, and <code>v_env_effects_dst_unified.csv</code>. Effect records are joined to sites through <code>Sites_GlobalID → GlobalID</code> and to earthquakes through <code>Event_Id → Id</code>.</p>
-  <h3>Confidence filter</h3><p>The radio buttons under <strong>Layers</strong> are generated automatically from all unique values found in the <code>Rel</code> field of both effect datasets. <strong>All</strong> displays every record. A selected Confidence value filters both thematic layers.</p>
-  <h3>Visual encoding</h3><p><strong>Earthquake Damage:</strong> each circle represents one site. Circle size represents the number of visible damage occurrences at that site after the Confidence filter is applied.</p><p><strong>Environmental Effects:</strong> each square represents one site. Square size represents the number of visible environmental-effect occurrences after filtering. Square colors represent the visible <code>Env_Eff</code> types; a segmented square indicates several effect types at the same site.</p>
-  <h3>Popups</h3><p>Each popup begins with the site name and coordinates. Records are organized by linked earthquake. Damage popups display Confidence, damage and casualty classes, intensity values, building and population totals, casualties, injuries, and description. Environmental popups display Confidence, effect code and name, category, description, and ESI value.</p>
+  <h3>Confidence filter</h3><p>The shared Confidence filter uses a fixed ordered scale for both thematic layers: Poor, Doubtful, Unknown, Moderate, High, and Very High. <strong>All</strong> displays every record. The displayed value <strong>Unknown</strong> also supports legacy records stored as <code>U</code>.</p>
+  <h3>Visual encoding</h3><p><strong>Earthquake Damage:</strong> each circle represents one site. Circle size represents the number of visible damage occurrences at that site after the Confidence filter is applied.</p><p><strong>Environmental Effects:</strong> each square represents one site. Square size represents the number of visible environmental-effect occurrences after filtering. Square colors represent the visible <code>Env_Eff</code> types; a segmented square indicates several effect types at the same site. The legend lists environmental effect types by color and does not repeat occurrence-size classes.</p>
+  <h3>Popups</h3><p>Each popup begins with the site name and coordinates. Linked earthquakes are displayed sequentially in a vertically scrollable list, with only the earthquake date shown as each section heading. The Confidence field is visually emphasized. Damage popups display damage and casualty classes, intensity values, building and population totals, casualties, injuries, and description. Environmental popups display effect code and name, category, description, and ESI value.</p>
   <h3>Views</h3><p><strong>Accumulated damage</strong> contains the current map and controls. <strong>Damage/Env Effect by Earthquake(s)</strong> is an empty placeholder for a future earthquake-selection view.</p>
   <h3>Scope</h3><p>The symbols represent documented historical effects at reported sites. They do not necessarily represent earthquake epicentres or instrumental ground-motion measurements.</p>
 </form></dialog>

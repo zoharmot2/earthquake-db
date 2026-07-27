@@ -4,6 +4,7 @@ const escapeHtml = (value) => String(value ?? "")
 
 const present = (value) => value !== null && value !== undefined && String(value).trim() !== "";
 const display = (value) => present(value) ? escapeHtml(value) : "—";
+const confidenceDisplay = (value) => String(value ?? "").trim() === "U" ? "Unknown" : display(value);
 
 function coordinateText(site) {
   const lng = Number(site.POINT_X);
@@ -13,10 +14,13 @@ function coordinateText(site) {
 }
 
 function rows(record, fields) {
-  return fields.map(([label, field]) => `
-    <div class="popup-field">
-      <dt>${escapeHtml(label)}</dt><dd>${display(record[field])}</dd>
-    </div>`).join("");
+  return fields.map(([label, field]) => {
+    const isConfidence = field === "Rel";
+    const value = isConfidence ? confidenceDisplay(record[field]) : display(record[field]);
+    return `<div class="popup-field${isConfidence ? " popup-field-confidence" : ""}">
+      <dt>${escapeHtml(label)}</dt><dd>${value}</dd>
+    </div>`;
+  }).join("");
 }
 
 function eventKey(record) { return String(record.Event_Id ?? "").trim(); }
@@ -25,7 +29,7 @@ function groupByEvent(records) {
   const groups = new Map();
   for (const record of records) {
     const key = eventKey(record);
-    if (!groups.has(key)) groups.set(key, { eventId: key, event: record._event, records: [] });
+    if (!groups.has(key)) groups.set(key, { event: record._event, records: [] });
     groups.get(key).records.push(record);
   }
   return [...groups.values()];
@@ -53,23 +57,20 @@ function renderRecord(record, fields, index, count) {
 function renderEventGroup(group, layerName) {
   const date = group.event?.Full_Date || group.records[0]?.Full_Date || "Undated earthquake";
   const fields = layerName === "damage" ? DAMAGE_FIELDS : ENV_FIELDS;
-  return `<details class="earthquake-group" open>
-    <summary><strong>${display(date)}</strong><span>Event ${display(group.eventId)} · ${group.records.length} occurrence${group.records.length === 1 ? "" : "s"}</span></summary>
+  return `<section class="earthquake-group">
+    <h4 class="earthquake-date">${display(date)}</h4>
     <div class="earthquake-group-body">
       ${group.records.map((record, index) => renderRecord(record, fields, index, group.records.length)).join("")}
     </div>
-  </details>`;
+  </section>`;
 }
 
 export function renderSitePopup(group, layerName, records) {
   const siteName = group.site.SITE_NAME || group.site.S_NAME || "Unnamed site";
-  const subtitle = layerName === "damage" ? "Earthquake Damage" : "Environmental Effects";
   const events = groupByEvent(records);
   return `<div class="popup-header">
-      <p class="popup-layer-label">${subtitle}</p>
       <h3>${display(siteName)}</h3>
       <p class="popup-coordinates">${coordinateText(group.site)}</p>
-      <div class="popup-site-meta"><span>${records.length} occurrence${records.length === 1 ? "" : "s"}</span><span>${events.length} earthquake${events.length === 1 ? "" : "s"}</span></div>
     </div>
     <div class="popup-body">${events.map((event) => renderEventGroup(event, layerName)).join("")}</div>`;
 }

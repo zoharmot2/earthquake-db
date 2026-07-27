@@ -1,0 +1,55 @@
+{
+  "status": "pass",
+  "counts": {
+    "sites": 1001,
+    "events": 389,
+    "damage_records": 1298,
+    "environmental_records": 241
+  },
+  "damage": {
+    "records": 1298,
+    "missing_site_links": 0,
+    "invalid_site_links": 0,
+    "missing_event_links": 0,
+    "invalid_event_links": 0,
+    "confidence_counts": {
+      "Very High": 410,
+      "Doubtful": 66,
+      "High": 323,
+      "Moderate": 252,
+      "Poor": 202,
+      "Unknown": 45
+    }
+  },
+  "environmental": {
+    "records": 241,
+    "missing_site_links": 0,
+    "invalid_site_links": 0,
+    "missing_event_links": 0,
+    "invalid_event_links": 0,
+    "confidence_counts": {
+      "Very High": 49,
+      "Doubtful": 61,
+      "High": 43,
+      "Moderate": 56,
+      "Poor": 28,
+      "Unknown": 4
+    }
+  },
+  "static_checks": {
+    "javascript_syntax": "pass",
+    "fixed_confidence_options": true,
+    "unknown_legacy_mapping": true,
+    "popup_date_only_sections": true,
+    "popup_vertical_scroll": true,
+    "confidence_highlight": true,
+    "about_text_updated": true,
+    "legend_damage_sizes_only": true
+  },
+  "note": "Browser-based visual QA remains required before v1.1 Stable.",
+  "site_title": {
+    "expected": "Dead Sea Transform Historical Earthquakes",
+    "html_title_updated": true,
+    "main_heading_updated": true
+  }
+}
