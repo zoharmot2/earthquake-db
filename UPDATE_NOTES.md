@@ -1,21 +1,29 @@
-# earthquake-db v1.1 review update package
+# earthquake-db v1.1 Review — Update 03 (corrected)
 
-This package documents the next approved UI changes for implementation.
+## Implemented changes
 
-## Popup
-- Remove the 'Earthquakes' label and earthquake count.
-- Replace tabbed earthquake navigation with a vertically scrollable list.
-- Show only the earthquake date as the header for each earthquake section.
-- Remove event number and event label.
-- Emphasize the Confidence field visually.
-- Keep popup offset slightly right/up while retaining Leaflet auto-pan.
+### Confidence filter
+- Uses a fixed list of values so `Unknown` is always visible.
+- `All` is aligned with the left column.
+- Left column: Poor, Doubtful, Unknown.
+- Right column: Moderate, High, Very High.
+- `Unknown` filters the underlying CSV value `U`.
 
-## Confidence filter
-- All aligned with left column.
-- Left: Poor, Doubtful, Unknown.
-- Right: Moderate, High, Very High.
-- Unknown maps to CSV value U.
+### Popup
+- Removes the thematic layer label at the top.
+- Removes the earthquake count label from the popup header.
+- Removes event number and event label from earthquake headings.
+- Displays only the earthquake date for each earthquake section.
+- Shows earthquake sections one after another in a vertically scrollable popup.
+- Highlights the Confidence field.
+- Offsets the popup slightly right and upward while retaining Leaflet auto-pan.
 
-## Legend
-- Damage: occurrence-size legend only.
-- Environmental Effects: effect-type symbology only.
+### Legend
+- Damage retains occurrence-size classes.
+- Environmental Effects retain effect-type symbology only.
+
+## Files
+- `js/map-app.js`
+- `css/map.css`
+
+This is a review update for v1.1, not a stable release.

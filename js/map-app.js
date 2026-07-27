@@ -32,21 +32,6 @@ function effectTypes(records){ return [...new Set(records.map((r)=>normalize(r.E
 function squareSvg(types,size){ const inner=size-4, width=inner/Math.max(types.length,1); const segments=types.map((t,i)=>`<rect x="${2+i*width}" y="2" width="${i===types.length-1?inner-i*width:width}" height="${inner}" fill="${ENV_COLORS[t]??ENV_COLORS.U}"/>`).join(""); return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${segments}<rect x="2" y="2" width="${inner}" height="${inner}" rx="2" fill="none" stroke="#fff" stroke-width="2"/></svg>`; }
 function environmentalIcon(records){ const size=sizeForCount(records.length),types=effectTypes(records); return L.divIcon({className:"environmental-div-icon",html:squareSvg(types,size),iconSize:[size,size],iconAnchor:[size/2,size/2],popupAnchor:[0,-size/2]}); }
 
-function simplifyPopupHtml(html){
-  const template=document.createElement("template");
-  template.innerHTML=html;
-  template.content.querySelectorAll(".popup-layer-label").forEach((node)=>node.remove());
-  template.content.querySelectorAll(".earthquake-group > summary").forEach((summary)=>{
-    const dateNode=summary.querySelector("span");
-    const date=(dateNode?.textContent ?? summary.textContent ?? "").trim();
-    summary.replaceChildren();
-    const dateLabel=document.createElement("strong");
-    dateLabel.textContent=date || "Unknown date";
-    summary.append(dateLabel);
-  });
-  return template.innerHTML;
-}
-
 function makeMarker(group,layerName,records){
   const latLng=coordinates(group.site); if(!latLng||!records.length)return null;
   const name=group.site.SITE_NAME||group.site.S_NAME||"Unnamed site"; let marker;
@@ -57,7 +42,7 @@ function makeMarker(group,layerName,records){
     const types=effectTypes(records); marker=L.marker(latLng,{icon:environmentalIcon(records)});
     marker.bindTooltip(`${name} · ${records.length} environmental occurrence${records.length===1?"":"s"} · ${types.join(", ")}`,{direction:"top",offset:[0,-8]});
   }
-  marker.bindPopup(simplifyPopupHtml(renderSitePopup(group,layerName,records)),{maxWidth:470,minWidth:330,offset:L.point(28,-24),autoPan:true,keepInView:true}); marker._siteGlobalId=group.siteGlobalId; return marker;
+  marker.bindPopup(renderSitePopup(group,layerName,records),{maxWidth:470,minWidth:330}); marker._siteGlobalId=group.siteGlobalId; return marker;
 }
 function rebuildLayer(name){ const layer=state.layers[name],index=state.markers[name]; layer.clearLayers();index.clear(); state.database.layers[name].forEach((group)=>{ const records=recordsForFilter(group.records); const marker=makeMarker(group,name,records);if(marker){marker.addTo(layer);index.set(group.siteGlobalId,marker);} }); }
 function rebuildAllLayers(){ rebuildLayer("damage");rebuildLayer("environmental");updateVisibleSummary();updateLegend(); }
@@ -73,54 +58,11 @@ function confidenceDisplayLabel(value){
 }
 
 function buildConfidenceOptions(){
-  const values=new Set();
-  for(const name of ["damage","environmental"]){
-    state.database.raw[name].forEach((record)=>{
-      const value=normalize(record.Rel);
-      if(value) values.add(value);
-    });
-  }
-
-  const preferred=[
-    {value:"Poor",position:"left",row:2},
-    {value:"Doubtful",position:"left",row:3},
-    {value:"U",position:"left",row:4},
-    {value:"Moderate",position:"right",row:2},
-    {value:"High",position:"right",row:3},
-    {value:"Very High",position:"right",row:4},
-  ];
-  const byLower=new Map([...values].map((value)=>[value.toLowerCase(),value]));
-  const ordered=preferred
-    .map((item)=>({...item,value:byLower.get(item.value.toLowerCase()) ?? item.value}))
-    .filter((item)=>values.has(item.value));
-
-  elements.confidenceOptions.replaceChildren();
-  const createOption=(value,className,row)=>{
-    const label=document.createElement("label");
-    label.className=`radio-row ${className}`;
-    label.style.gridRow=String(row);
-    const input=document.createElement("input");
-    input.type="radio";
-    input.name="confidence";
-    input.value=value;
-    input.checked=value==="all";
-    const span=document.createElement("span");
-    span.textContent=confidenceDisplayLabel(value);
-    label.append(input,span);
-    elements.confidenceOptions.append(label);
-  };
-
-  createOption("all","confidence-all confidence-left",1);
-  ordered.forEach((item)=>createOption(item.value,`confidence-${item.position}`,item.row));
-
-  elements.confidenceOptions.addEventListener("change",(event)=>{
-    if(event.target.name!=="confidence") return;
-    state.confidence=event.target.value;
-    rebuildAllLayers();
-    showStatus(`Confidence filter: ${confidenceDisplayLabel(event.target.value)}.`);
-  });
+  const values=new Set(); for(const name of ["damage","environmental"]) state.database.raw[name].forEach((r)=>{const v=normalize(r.Rel);if(v)values.add(v);});
+  const sorted=[...values].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:"base"}));
+  elements.confidenceOptions.replaceChildren(); ["all",...sorted].forEach((value,index)=>{ const label=document.createElement("label");label.className=`radio-row${value==="all"?" confidence-all":""}`; const input=document.createElement("input");input.type="radio";input.name="confidence";input.value=value;input.checked=index===0; const span=document.createElement("span");span.textContent=confidenceDisplayLabel(value); label.append(input,span);elements.confidenceOptions.append(label); });
+  elements.confidenceOptions.addEventListener("change",(event)=>{if(event.target.name!=="confidence")return;state.confidence=event.target.value;rebuildAllLayers();showStatus(`Confidence filter: ${confidenceDisplayLabel(event.target.value)}.`);});
 }
-
 function siteSearchIndex(){ const index=new Map();for(const name of ["damage","environmental"])state.database.layers[name].forEach((g)=>{const cur=index.get(g.siteGlobalId)??{siteGlobalId:g.siteGlobalId,name:g.site.SITE_NAME||"Unnamed site",layers:[]};if(!cur.layers.includes(name))cur.layers.push(name);index.set(g.siteGlobalId,cur);});return [...index.values()].sort((a,b)=>a.name.localeCompare(b.name)); }
 function renderSearchResults(query){ const q=query.trim().toLowerCase();elements.searchResults.replaceChildren();if(!q){elements.searchResults.classList.remove("active");return;}const results=siteSearchIndex().filter((x)=>x.name.toLowerCase().includes(q)).slice(0,20);if(!results.length){const d=document.createElement("div");d.className="search-result";d.textContent="No matching sites";elements.searchResults.append(d);}else results.forEach((item)=>{const b=document.createElement("button");b.type="button";b.className="search-result";b.textContent=`${item.name} (${item.layers.join(", ")})`;b.onclick=()=>{focusSite(item);elements.searchResults.classList.remove("active");elements.siteSearch.value=item.name;};elements.searchResults.append(b);});elements.searchResults.classList.add("active"); }
 function focusSite(item){for(const name of ["damage","environmental"]){const marker=state.markers[name].get(item.siteGlobalId);if(!marker)continue;if(name==="damage")elements.damageToggle.checked=true;else elements.environmentalToggle.checked=true;setLayerVisibility(name,true);state.map.setView(marker.getLatLng(),Math.max(state.map.getZoom(),9),{animate:true});marker.openPopup();return;}showStatus("This site has no records under the current Confidence filter.");}
