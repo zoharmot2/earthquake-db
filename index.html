@@ -97,7 +97,7 @@
       <p>The map loads the repository CSV files directly in the browser. Site records are joined only through <code>Sites_GlobalID → GlobalID</code>. Event records are joined only through <code>Event_Id → Id</code>.</p>
       <h3>Visual encoding</h3>
       <p><strong>Earthquake Damage:</strong> circle size represents the highest visible <code>Damage_Val</code> recorded at the site. The ordered classes are Felt, Light, Moderate, Heavy, and Severe. Records with an unknown or missing value use the smallest symbol.</p>
-      <p><strong>Environmental Effects:</strong> marker size represents the highest visible value parsed from <code>ESI_Val</code>. Marker colors represent the environmental-effect codes in <code>Env_Eff</code>. When several effect types occur at one site, the marker is divided into colored segments so that all visible types remain represented.</p>
+      <p><strong>Environmental Effects:</strong> square size represents the highest visible value parsed from <code>ESI_Val</code>. Square colors represent the environmental-effect codes in <code>Env_Eff</code>. When several effect types occur at one site, the square is divided into colored segments so that all visible types remain represented. The map legend lists the effect-type colors, while the ESI value remains available in the tooltip and popup.</p>
       <p>When an event identifier has no corresponding record in the reliable event catalogue, the effect record remains visible and is labelled <strong>No linked event record</strong>. No fallback matching by site name, date, magnitude, or coordinates is performed.</p>
       <p>Each marker represents one site within one thematic layer. Its popup aggregates all matching records for that site.</p>
     </form>

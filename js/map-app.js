@@ -2,8 +2,8 @@ import { loadEarthquakeDatabase } from "./data-loader.js";
 import { renderSitePopup } from "./popup-renderer.js";
 
 const INITIAL_BOUNDS = L.latLngBounds(
-  [21.5, 24.0],
-  [39.0, 43.5]
+  [28.7, 32.0],
+  [37.8, 39.5]
 );
 
 const DAMAGE_LEVELS = Object.freeze({
@@ -175,26 +175,26 @@ function pieSvg(types, size) {
   if (sliceCount === 1) {
     const color = ENV_COLORS[types[0]] ?? ENV_COLORS.U;
     return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
-      <circle cx="${center}" cy="${center}" r="${radius - 2}" fill="${color}" stroke="#fff" stroke-width="2"/>
+      <rect x="2" y="2" width="${size - 4}" height="${size - 4}" rx="2"
+            fill="${color}" stroke="#fff" stroke-width="2"/>
     </svg>`;
   }
 
-  const slices = types.map((type, index) => {
-    const start = (index / sliceCount) * Math.PI * 2 - Math.PI / 2;
-    const end = ((index + 1) / sliceCount) * Math.PI * 2 - Math.PI / 2;
-    const x1 = center + (radius - 2) * Math.cos(start);
-    const y1 = center + (radius - 2) * Math.sin(start);
-    const x2 = center + (radius - 2) * Math.cos(end);
-    const y2 = center + (radius - 2) * Math.sin(end);
-    const largeArc = end - start > Math.PI ? 1 : 0;
+  const innerSize = size - 4;
+  const segmentWidth = innerSize / sliceCount;
+  const segments = types.map((type, index) => {
     const color = ENV_COLORS[type] ?? ENV_COLORS.U;
-
-    return `<path d="M ${center} ${center} L ${x1} ${y1} A ${radius - 2} ${radius - 2} 0 ${largeArc} 1 ${x2} ${y2} Z" fill="${color}"/>`;
+    const x = 2 + index * segmentWidth;
+    const width = index === sliceCount - 1
+      ? innerSize - index * segmentWidth
+      : segmentWidth;
+    return `<rect x="${x}" y="2" width="${width}" height="${innerSize}" fill="${color}"/>`;
   }).join("");
 
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
-    ${slices}
-    <circle cx="${center}" cy="${center}" r="${radius - 2}" fill="none" stroke="#fff" stroke-width="2"/>
+    ${segments}
+    <rect x="2" y="2" width="${innerSize}" height="${innerSize}" rx="2"
+          fill="none" stroke="#fff" stroke-width="2"/>
   </svg>`;
 }
 
@@ -381,8 +381,8 @@ function damageLegendHtml() {
     </div>`).join("");
 
   return `<section class="legend-section">
-    <strong>Damage severity</strong>
-    <small>Marker size: highest Damage_Val at site</small>
+    <strong>Earthquake Damage</strong>
+    <small>Circle size: highest Damage_Val at site</small>
     ${items}
   </section>`;
 }
@@ -401,26 +401,10 @@ function environmentalLegendHtml() {
       <span>${ENV_LABELS[type] ?? type}</span>
     </div>`).join("");
 
-  const sizeRows = [
-    [22, "ESI ≤ 6"],
-    [26, "ESI 7"],
-    [30, "ESI 8"],
-    [34, "ESI 9"],
-    [38, "ESI 10"],
-    [42, "ESI 11+"],
-  ].map(([size, label]) => `
-    <div class="legend-row">
-      <span class="legend-env-size" style="width:${Math.round(size*.55)}px;height:${Math.round(size*.55)}px"></span>
-      <span>${label}</span>
-    </div>`).join("");
-
   return `<section class="legend-section">
-    <strong>Environmental effect type</strong>
-    <small>Color: Env_Eff</small>
+    <strong>Environmental Effects</strong>
+    <small>Square color: Env_Eff</small>
     <div class="legend-scroll">${typeRows}</div>
-    <strong class="legend-subheading">Environmental severity</strong>
-    <small>Marker size: highest ESI_Val at site</small>
-    ${sizeRows}
   </section>`;
 }
 
@@ -465,7 +449,7 @@ function initializeMap() {
     ),
   };
 
-  state.baseLayers["Light map"].addTo(state.map);
+  state.baseLayers["OpenStreetMap"].addTo(state.map);
   state.layers.damage.addTo(state.map);
   state.layers.environmental.addTo(state.map);
 
@@ -476,7 +460,7 @@ function initializeMap() {
 
   L.control.scale({ imperial: false }).addTo(state.map);
 
-  state.legend = L.control({ position: "bottomright" });
+  state.legend = L.control({ position: "bottomleft" });
   state.legend.onAdd = () => L.DomUtil.create("div", "map-legend");
   state.legend.addTo(state.map);
 

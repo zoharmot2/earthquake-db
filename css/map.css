@@ -510,15 +510,6 @@ dialog p { line-height: 1.55; }
   box-shadow: 0 0 0 1px rgba(0,0,0,0.22);
 }
 
-.legend-env-size {
-  flex: 0 0 auto;
-  display: inline-block;
-  border: 2px solid white;
-  border-radius: 50%;
-  background: #5c7182;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.28);
-}
-
 .legend-scroll {
   max-height: 175px;
   overflow-y: auto;
