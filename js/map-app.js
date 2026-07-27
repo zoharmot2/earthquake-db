@@ -1,19 +1,70 @@
 import { loadEarthquakeDatabase } from "./data-loader.js";
 import { renderSitePopup } from "./popup-renderer.js";
 
-const INITIAL_VIEW = Object.freeze({
-  center: [31.7, 35.3],
-  zoom: 6,
+const INITIAL_BOUNDS = L.latLngBounds(
+  [21.5, 24.0],
+  [39.0, 43.5]
+);
+
+const DAMAGE_LEVELS = Object.freeze({
+  "": 0,
+  "U": 0,
+  "Felt": 1,
+  "Light": 2,
+  "Moderate": 3,
+  "Heavy": 4,
+  "Severe": 5,
 });
 
-const COLORS = Object.freeze({
-  damage: "#b64926",
-  environmental: "#277a6b",
+const DAMAGE_RADII = Object.freeze({
+  0: 5,
+  1: 6,
+  2: 8,
+  3: 10,
+  4: 13,
+  5: 16,
+});
+
+const ENV_COLORS = Object.freeze({
+  AC: "#7f3c8d",
+  CS: "#11a579",
+  DR: "#3969ac",
+  GB: "#f2b701",
+  GC: "#e73f74",
+  GE: "#80ba5a",
+  LD: "#e68310",
+  LQ: "#008695",
+  RF: "#cf1c90",
+  SF: "#f97b72",
+  SW: "#4b4b8f",
+  WC: "#a5aa99",
+  WO: "#6f4e7c",
+  U: "#8c8c8c",
+  "": "#8c8c8c",
+});
+
+const ENV_LABELS = Object.freeze({
+  AC: "AC",
+  CS: "CS",
+  DR: "DR",
+  GB: "GB — Ground breakage",
+  GC: "GC — Ground breakage",
+  GE: "GE — Gas exhalation",
+  LD: "LD — Slope stability",
+  LQ: "LQ — Liquefaction-related",
+  RF: "RF",
+  SF: "SF",
+  SW: "SW — Sea phenomena",
+  WC: "WC",
+  WO: "WO",
+  U: "U — Unknown",
+  "": "Unknown",
 });
 
 const state = {
   database: null,
   map: null,
+  baseLayers: {},
   layers: {
     damage: L.layerGroup(),
     environmental: L.layerGroup(),
@@ -23,6 +74,7 @@ const state = {
     environmental: new Map(),
   },
   filter: "all",
+  legend: null,
 };
 
 const elements = {
@@ -58,7 +110,6 @@ function showStatus(message, isError = false) {
 function coordinates(site) {
   const lng = Number(site.POINT_X);
   const lat = Number(site.POINT_Y);
-
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
   return [lat, lng];
@@ -74,26 +125,119 @@ function recordsForFilter(records) {
   return records;
 }
 
-function markerRadius(count) {
-  return Math.max(6, Math.min(15, 6 + Math.log2(Math.max(count, 1)) * 1.7));
+function damageLevel(records) {
+  return records.reduce((maximum, record) => {
+    const label = String(record.Damage_Val ?? "").trim();
+    return Math.max(maximum, DAMAGE_LEVELS[label] ?? 0);
+  }, 0);
+}
+
+function damageLabel(level) {
+  return ["Unknown", "Felt", "Light", "Moderate", "Heavy", "Severe"][level] ?? "Unknown";
+}
+
+function parseEsi(value) {
+  const text = String(value ?? "").trim();
+  if (!text || text.toLowerCase() === "unknown") return null;
+  const numbers = text.match(/\d+(?:\.\d+)?/g);
+  if (!numbers?.length) return null;
+  return Math.max(...numbers.map(Number).filter(Number.isFinite));
+}
+
+function maximumEsi(records) {
+  const values = records.map((record) => parseEsi(record.ESI_Val))
+    .filter((value) => value !== null);
+  return values.length ? Math.max(...values) : null;
+}
+
+function environmentalSize(esi) {
+  if (esi === null) return 20;
+  if (esi <= 6) return 22;
+  if (esi <= 7) return 26;
+  if (esi <= 8) return 30;
+  if (esi <= 9) return 34;
+  if (esi <= 10) return 38;
+  return 42;
+}
+
+function effectTypes(records) {
+  const types = new Set(
+    records.map((record) => String(record.Env_Eff ?? "").trim() || "U")
+  );
+  return [...types].sort();
+}
+
+function pieSvg(types, size) {
+  const radius = size / 2;
+  const center = radius;
+  const sliceCount = Math.max(types.length, 1);
+
+  if (sliceCount === 1) {
+    const color = ENV_COLORS[types[0]] ?? ENV_COLORS.U;
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+      <circle cx="${center}" cy="${center}" r="${radius - 2}" fill="${color}" stroke="#fff" stroke-width="2"/>
+    </svg>`;
+  }
+
+  const slices = types.map((type, index) => {
+    const start = (index / sliceCount) * Math.PI * 2 - Math.PI / 2;
+    const end = ((index + 1) / sliceCount) * Math.PI * 2 - Math.PI / 2;
+    const x1 = center + (radius - 2) * Math.cos(start);
+    const y1 = center + (radius - 2) * Math.sin(start);
+    const x2 = center + (radius - 2) * Math.cos(end);
+    const y2 = center + (radius - 2) * Math.sin(end);
+    const largeArc = end - start > Math.PI ? 1 : 0;
+    const color = ENV_COLORS[type] ?? ENV_COLORS.U;
+
+    return `<path d="M ${center} ${center} L ${x1} ${y1} A ${radius - 2} ${radius - 2} 0 ${largeArc} 1 ${x2} ${y2} Z" fill="${color}"/>`;
+  }).join("");
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+    ${slices}
+    <circle cx="${center}" cy="${center}" r="${radius - 2}" fill="none" stroke="#fff" stroke-width="2"/>
+  </svg>`;
+}
+
+function makeEnvironmentalIcon(records) {
+  const esi = maximumEsi(records);
+  const size = environmentalSize(esi);
+  const types = effectTypes(records);
+  return L.divIcon({
+    className: "environmental-div-icon",
+    html: pieSvg(types, size),
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+  });
 }
 
 function makeMarker(group, layerName, records) {
   const latLng = coordinates(group.site);
   if (!latLng || records.length === 0) return null;
 
-  const marker = L.circleMarker(latLng, {
-    radius: markerRadius(records.length),
-    color: "#ffffff",
-    weight: 1.5,
-    fillColor: COLORS[layerName],
-    fillOpacity: 0.86,
-  });
-
-  marker.bindTooltip(
-    `${group.site.SITE_NAME || "Unnamed site"} · ${records.length} record${records.length === 1 ? "" : "s"}`,
-    { direction: "top", offset: [0, -5] }
-  );
+  let marker;
+  if (layerName === "damage") {
+    const level = damageLevel(records);
+    marker = L.circleMarker(latLng, {
+      radius: DAMAGE_RADII[level],
+      color: "#ffffff",
+      weight: 1.5,
+      fillColor: "#b64926",
+      fillOpacity: 0.86,
+    });
+    marker.bindTooltip(
+      `${group.site.SITE_NAME || "Unnamed site"} · ${records.length} record${records.length === 1 ? "" : "s"} · Maximum damage: ${damageLabel(level)}`,
+      { direction: "top", offset: [0, -5] }
+    );
+  } else {
+    const esi = maximumEsi(records);
+    const types = effectTypes(records);
+    marker = L.marker(latLng, { icon: makeEnvironmentalIcon(records) });
+    marker.bindTooltip(
+      `${group.site.SITE_NAME || "Unnamed site"} · ${records.length} record${records.length === 1 ? "" : "s"} · Maximum ESI: ${esi ?? "Unknown"} · Types: ${types.join(", ")}`,
+      { direction: "top", offset: [0, -8] }
+    );
+  }
 
   marker.bindPopup(renderSitePopup(group, layerName, records), {
     maxWidth: 420,
@@ -126,61 +270,42 @@ function rebuildAllLayers() {
   rebuildLayer("damage");
   rebuildLayer("environmental");
   updateVisibleSummary();
+  updateLegend();
 }
 
 function updateVisibleSummary() {
-  const damageMarkers = state.markers.damage.size;
-  const environmentalMarkers = state.markers.environmental.size;
   elements.visibleSummary.textContent =
-    `Visible markers: ${damageMarkers} damage and ${environmentalMarkers} environmental.`;
+    `Visible markers: ${state.markers.damage.size} damage and ${state.markers.environmental.size} environmental.`;
 }
 
 function setLayerVisibility(layerName, visible) {
   const layer = state.layers[layerName];
-  if (visible && !state.map.hasLayer(layer)) {
-    layer.addTo(state.map);
-  } else if (!visible && state.map.hasLayer(layer)) {
-    state.map.removeLayer(layer);
-  }
+  if (visible && !state.map.hasLayer(layer)) layer.addTo(state.map);
+  if (!visible && state.map.hasLayer(layer)) state.map.removeLayer(layer);
+  updateLegend();
 }
 
 function allVisibleMarkers() {
   const markers = [];
-  if (elements.damageToggle.checked) {
-    markers.push(...state.markers.damage.values());
-  }
-  if (elements.environmentalToggle.checked) {
-    markers.push(...state.markers.environmental.values());
-  }
+  if (elements.damageToggle.checked) markers.push(...state.markers.damage.values());
+  if (elements.environmentalToggle.checked) markers.push(...state.markers.environmental.values());
   return markers;
 }
 
-function fitVisibleMarkers() {
-  const markers = allVisibleMarkers();
-  if (!markers.length) {
-    state.map.setView(INITIAL_VIEW.center, INITIAL_VIEW.zoom);
-    return;
-  }
-
-  const group = L.featureGroup(markers);
-  const bounds = group.getBounds();
-  if (bounds.isValid()) state.map.fitBounds(bounds.pad(0.08));
+function fitInitialBounds() {
+  state.map.fitBounds(INITIAL_BOUNDS, { padding: [15, 15] });
 }
 
 function populateSummary() {
   const counts = state.database.report.counts;
   elements.damageSiteCount.textContent = counts.damageSites.toLocaleString();
-  elements.environmentalSiteCount.textContent =
-    counts.environmentalSites.toLocaleString();
-  elements.damageRecordCount.textContent =
-    counts.damageRecords.toLocaleString();
-  elements.environmentalRecordCount.textContent =
-    counts.environmentalRecords.toLocaleString();
+  elements.environmentalSiteCount.textContent = counts.environmentalSites.toLocaleString();
+  elements.damageRecordCount.textContent = counts.damageRecords.toLocaleString();
+  elements.environmentalRecordCount.textContent = counts.environmentalRecords.toLocaleString();
 }
 
 function siteSearchIndex() {
   const index = new Map();
-
   for (const layerName of ["damage", "environmental"]) {
     state.database.layers[layerName].forEach((group) => {
       const current = index.get(group.siteGlobalId) ?? {
@@ -192,14 +317,12 @@ function siteSearchIndex() {
       index.set(group.siteGlobalId, current);
     });
   }
-
   return [...index.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function renderSearchResults(query) {
   const normalized = query.trim().toLowerCase();
   elements.searchResults.replaceChildren();
-
   if (!normalized) {
     elements.searchResults.classList.remove("active");
     return;
@@ -223,84 +346,141 @@ function renderSearchResults(query) {
     button.type = "button";
     button.className = "search-result";
     button.setAttribute("role", "option");
-    button.textContent =
-      `${item.name} (${item.layers.map((layer) =>
-        layer === "damage" ? "damage" : "environmental"
-      ).join(", ")})`;
-
+    button.textContent = `${item.name} (${item.layers.join(", ")})`;
     button.addEventListener("click", () => {
       focusSite(item);
       elements.searchResults.classList.remove("active");
       elements.siteSearch.value = item.name;
     });
-
     elements.searchResults.append(button);
   });
-
   elements.searchResults.classList.add("active");
 }
 
 function focusSite(item) {
-  const preferredOrder = ["damage", "environmental"];
-  for (const layerName of preferredOrder) {
+  for (const layerName of ["damage", "environmental"]) {
     const marker = state.markers[layerName].get(item.siteGlobalId);
     if (!marker) continue;
-
-    if (layerName === "damage") {
-      elements.damageToggle.checked = true;
-    } else {
-      elements.environmentalToggle.checked = true;
-    }
+    if (layerName === "damage") elements.damageToggle.checked = true;
+    else elements.environmentalToggle.checked = true;
     setLayerVisibility(layerName, true);
-
-    state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 9), {
-      animate: true,
-    });
+    state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 9), { animate: true });
     marker.openPopup();
     return;
   }
-
   showStatus("This site has no visible records under the current filter.");
 }
 
-function addMapLegend() {
-  const legend = L.control({ position: "bottomright" });
+function damageLegendHtml() {
+  const items = [
+    [1, "Felt"], [2, "Light"], [3, "Moderate"], [4, "Heavy"], [5, "Severe"]
+  ].map(([level, label]) => `
+    <div class="legend-row">
+      <span class="legend-circle" style="width:${DAMAGE_RADII[level]*2}px;height:${DAMAGE_RADII[level]*2}px"></span>
+      <span>${label}</span>
+    </div>`).join("");
 
-  legend.onAdd = () => {
-    const div = L.DomUtil.create("div", "leaflet-control leaflet-bar");
-    div.style.background = "white";
-    div.style.padding = "8px 10px";
-    div.style.lineHeight = "1.55";
-    div.style.fontSize = "12px";
-    div.innerHTML = `
-      <strong>Layers</strong><br>
-      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${COLORS.damage};margin-right:6px"></span>Earthquake Damage<br>
-      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${COLORS.environmental};margin-right:6px"></span>Environmental Effects
-    `;
-    return div;
-  };
+  return `<section class="legend-section">
+    <strong>Damage severity</strong>
+    <small>Marker size: highest Damage_Val at site</small>
+    ${items}
+  </section>`;
+}
 
-  legend.addTo(state.map);
+function environmentalLegendHtml() {
+  const presentTypes = new Set();
+  state.database.layers.environmental.forEach((group) => {
+    recordsForFilter(group.records).forEach((record) => {
+      presentTypes.add(String(record.Env_Eff ?? "").trim() || "U");
+    });
+  });
+
+  const typeRows = [...presentTypes].sort().map((type) => `
+    <div class="legend-row">
+      <span class="legend-swatch" style="background:${ENV_COLORS[type] ?? ENV_COLORS.U}"></span>
+      <span>${ENV_LABELS[type] ?? type}</span>
+    </div>`).join("");
+
+  const sizeRows = [
+    [22, "ESI ≤ 6"],
+    [26, "ESI 7"],
+    [30, "ESI 8"],
+    [34, "ESI 9"],
+    [38, "ESI 10"],
+    [42, "ESI 11+"],
+  ].map(([size, label]) => `
+    <div class="legend-row">
+      <span class="legend-env-size" style="width:${Math.round(size*.55)}px;height:${Math.round(size*.55)}px"></span>
+      <span>${label}</span>
+    </div>`).join("");
+
+  return `<section class="legend-section">
+    <strong>Environmental effect type</strong>
+    <small>Color: Env_Eff</small>
+    <div class="legend-scroll">${typeRows}</div>
+    <strong class="legend-subheading">Environmental severity</strong>
+    <small>Marker size: highest ESI_Val at site</small>
+    ${sizeRows}
+  </section>`;
+}
+
+function updateLegend() {
+  if (!state.legend || !state.database) return;
+  const container = state.legend.getContainer();
+  const sections = [];
+  if (elements.damageToggle.checked) sections.push(damageLegendHtml());
+  if (elements.environmentalToggle.checked) sections.push(environmentalLegendHtml());
+  container.innerHTML = sections.join("");
+  container.style.display = sections.length ? "block" : "none";
 }
 
 function initializeMap() {
   state.map = L.map("map", {
-    center: INITIAL_VIEW.center,
-    zoom: INITIAL_VIEW.zoom,
     zoomControl: true,
     preferCanvas: true,
   });
 
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(state.map);
+  state.baseLayers = {
+    "Light map": L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      {
+        maxZoom: 20,
+        subdomains: "abcd",
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      }
+    ),
+    "OpenStreetMap": L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      }
+    ),
+    "Satellite": L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+        attribution: "Tiles &copy; Esri and imagery contributors",
+      }
+    ),
+  };
 
+  state.baseLayers["Light map"].addTo(state.map);
   state.layers.damage.addTo(state.map);
   state.layers.environmental.addTo(state.map);
+
+  L.control.layers(state.baseLayers, null, {
+    position: "topright",
+    collapsed: false,
+  }).addTo(state.map);
+
   L.control.scale({ imperial: false }).addTo(state.map);
-  addMapLegend();
+
+  state.legend = L.control({ position: "bottomright" });
+  state.legend.onAdd = () => L.DomUtil.create("div", "map-legend");
+  state.legend.addTo(state.map);
+
+  fitInitialBounds();
 }
 
 function bindControls() {
@@ -326,27 +506,19 @@ function bindControls() {
     );
   });
 
-  elements.siteSearch.addEventListener("input", (event) => {
-    renderSearchResults(event.target.value);
-  });
-
-  elements.searchButton.addEventListener("click", () => {
-    renderSearchResults(elements.siteSearch.value);
-  });
+  elements.siteSearch.addEventListener("input", (event) => renderSearchResults(event.target.value));
+  elements.searchButton.addEventListener("click", () => renderSearchResults(elements.siteSearch.value));
 
   elements.siteSearch.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
       renderSearchResults(elements.siteSearch.value);
     }
-    if (event.key === "Escape") {
-      elements.searchResults.classList.remove("active");
-    }
+    if (event.key === "Escape") elements.searchResults.classList.remove("active");
   });
 
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".search-row") &&
-        !event.target.closest(".search-results")) {
+    if (!event.target.closest(".search-row") && !event.target.closest(".search-results")) {
       elements.searchResults.classList.remove("active");
     }
   });
@@ -361,36 +533,28 @@ function bindControls() {
     elements.siteSearch.value = "";
     elements.searchResults.classList.remove("active");
     rebuildAllLayers();
-    fitVisibleMarkers();
+    fitInitialBounds();
   });
 
-  elements.aboutButton.addEventListener("click", () => {
-    elements.aboutDialog.showModal();
-  });
+  elements.aboutButton.addEventListener("click", () => elements.aboutDialog.showModal());
 }
 
 async function start() {
   try {
     initializeMap();
     bindControls();
-
     state.database = await loadEarthquakeDatabase();
 
     const issues = state.database.report.issues;
-    if (issues.damageUnlinkedSites.length ||
-        issues.environmentalUnlinkedSites.length) {
-      throw new Error(
-        "One or more effect records could not be linked to a site."
-      );
+    if (issues.damageUnlinkedSites.length || issues.environmentalUnlinkedSites.length) {
+      throw new Error("One or more effect records could not be linked to a site.");
     }
 
     rebuildAllLayers();
     populateSummary();
-    fitVisibleMarkers();
-
-    const counts = state.database.report.counts;
     elements.loading.classList.add("hidden");
 
+    const counts = state.database.report.counts;
     showStatus(
       `Loaded ${counts.damageRecords.toLocaleString()} damage records and ` +
       `${counts.environmentalRecords.toLocaleString()} environmental records.`
