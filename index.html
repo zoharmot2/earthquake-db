@@ -5,114 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Interactive map of historical earthquake damage and environmental effects in the Dead Sea Transform region.">
   <title>earthquake-db — Interactive Map</title>
-
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="preconnect" href="https://tile.openstreetmap.org">
-  <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="./css/map.css">
 </head>
 <body>
-  <div class="app-shell">
-    <header class="site-header">
-      <div>
-        <p class="eyebrow">earthquake-db v1.1</p>
-        <h1>Historical Earthquake Effects Map</h1>
-        <p class="subtitle">Damage and environmental effects in the Dead Sea Transform region</p>
-      </div>
-      <button id="about-button" class="secondary-button" type="button">About the data</button>
-    </header>
+<div class="app-shell">
+  <header class="site-header">
+    <div><p class="eyebrow">earthquake-db v1.1</p><h1>Historical Earthquake Effects Map</h1><p class="subtitle">Damage and environmental effects in the Dead Sea Transform region</p></div>
+    <button id="about-button" class="secondary-button" type="button">About the data</button>
+  </header>
 
-    <main class="map-layout">
-      <aside class="control-panel" aria-label="Map controls">
-        <section class="panel-section">
-          <h2>Explore</h2>
-          <label for="site-search">Find a site</label>
-          <div class="search-row">
-            <input id="site-search" type="search" placeholder="Enter a site name" autocomplete="off">
-            <button id="search-button" type="button">Search</button>
-          </div>
-          <div id="search-results" class="search-results" role="listbox" aria-live="polite"></div>
-        </section>
+  <div class="tab-shell">
+    <div class="tab-list" role="tablist" aria-label="Map views">
+      <button id="accumulated-tab" class="tab-button" role="tab" aria-selected="true" aria-controls="accumulated-panel" tabindex="0">Accumulated damage</button>
+      <button id="earthquake-tab" class="tab-button" role="tab" aria-selected="false" aria-controls="earthquake-panel" tabindex="-1">Damage/Env Effect by Earthquake(s)</button>
+    </div>
 
-        <section class="panel-section">
-          <h2>Layers</h2>
-          <label class="check-row">
-            <input id="damage-toggle" type="checkbox" checked>
-            <span class="layer-dot damage-dot"></span>
-            <span>Earthquake Damage</span>
-          </label>
-          <label class="check-row">
-            <input id="environmental-toggle" type="checkbox" checked>
-            <span class="layer-dot environmental-dot"></span>
-            <span>Environmental Effects</span>
-          </label>
-        </section>
+    <section id="accumulated-panel" class="tab-panel" role="tabpanel" aria-labelledby="accumulated-tab">
+      <main class="map-layout">
+        <aside class="control-panel" aria-label="Map controls">
+          <section class="panel-section"><h2>Explore</h2><label for="site-search">Find a site</label><div class="search-row"><input id="site-search" type="search" placeholder="Enter a site name" autocomplete="off"><button id="search-button" type="button">Search</button></div><div id="search-results" class="search-results" role="listbox" aria-live="polite"></div></section>
+          <section class="panel-section"><h2>Layers</h2>
+            <label class="check-row"><input id="damage-toggle" type="checkbox" checked><span class="layer-dot damage-dot"></span><span>Earthquake Damage</span></label>
+            <label class="check-row"><input id="environmental-toggle" type="checkbox" checked><span class="layer-square environmental-dot"></span><span>Environmental Effects</span></label>
+            <fieldset class="confidence-fieldset"><legend>Confidence</legend><div id="confidence-options" class="radio-options" aria-live="polite"><span class="help-text">Loading values…</span></div></fieldset>
+          </section>
+          <section class="panel-section"><h2>Map summary</h2><dl class="summary-grid"><div><dt>Damage sites</dt><dd id="damage-site-count">—</dd></div><div><dt>Environmental sites</dt><dd id="environmental-site-count">—</dd></div><div><dt>Damage records</dt><dd id="damage-record-count">—</dd></div><div><dt>Environmental records</dt><dd id="environmental-record-count">—</dd></div></dl><p id="visible-summary" class="visible-summary">Loading data…</p></section>
+          <section class="panel-section compact"><button id="reset-button" class="secondary-button full-width" type="button">Reset map</button></section>
+        </aside>
+        <section class="map-panel"><div id="loading-overlay" class="loading-overlay"><div class="spinner" aria-hidden="true"></div><p>Loading earthquake data…</p></div><div id="map" aria-label="Interactive earthquake effects map"></div><div id="status-message" class="status-message" role="status" aria-live="polite"></div></section>
+      </main>
+    </section>
 
-        <section class="panel-section">
-          <h2>Event linkage</h2>
-          <label for="link-filter">Show records</label>
-          <select id="link-filter">
-            <option value="all">All records</option>
-            <option value="linked">Linked event records only</option>
-            <option value="unlinked">No linked event record only</option>
-          </select>
-          <p class="help-text">Unlinked records remain visible and are clearly labelled in their popup.</p>
-        </section>
-
-        <section class="panel-section">
-          <h2>Map summary</h2>
-          <dl class="summary-grid">
-            <div><dt>Damage sites</dt><dd id="damage-site-count">—</dd></div>
-            <div><dt>Environmental sites</dt><dd id="environmental-site-count">—</dd></div>
-            <div><dt>Damage records</dt><dd id="damage-record-count">—</dd></div>
-            <div><dt>Environmental records</dt><dd id="environmental-record-count">—</dd></div>
-          </dl>
-          <p id="visible-summary" class="visible-summary">Loading data…</p>
-        </section>
-
-        <section class="panel-section compact">
-          <button id="reset-button" class="secondary-button full-width" type="button">Reset map</button>
-        </section>
-      </aside>
-
-      <section class="map-panel">
-        <div id="loading-overlay" class="loading-overlay">
-          <div class="spinner" aria-hidden="true"></div>
-          <p>Loading earthquake data…</p>
-        </div>
-        <div id="map" aria-label="Interactive earthquake effects map"></div>
-        <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
-      </section>
-    </main>
+    <section id="earthquake-panel" class="tab-panel empty-tab" role="tabpanel" aria-labelledby="earthquake-tab" hidden>
+      <div><h2>Damage/Env Effect by Earthquake(s)</h2><p>This view is reserved for a future release.</p></div>
+    </section>
   </div>
+</div>
 
-  <dialog id="about-dialog">
-    <form method="dialog">
-      <div class="dialog-header">
-        <h2>About the data</h2>
-        <button class="dialog-close" value="close" aria-label="Close">×</button>
-      </div>
-      <p>The map loads the repository CSV files directly in the browser. Site records are joined only through <code>Sites_GlobalID → GlobalID</code>. Event records are joined only through <code>Event_Id → Id</code>.</p>
-      <h3>Visual encoding</h3>
-      <p><strong>Earthquake Damage:</strong> circle size represents the highest visible <code>Damage_Val</code> recorded at the site. The ordered classes are Felt, Light, Moderate, Heavy, and Severe. Records with an unknown or missing value use the smallest symbol.</p>
-      <p><strong>Environmental Effects:</strong> square size represents the highest visible value parsed from <code>ESI_Val</code>. Square colors represent the environmental-effect codes in <code>Env_Eff</code>. When several effect types occur at one site, the square is divided into colored segments so that all visible types remain represented. The map legend lists the effect-type colors, while the ESI value remains available in the tooltip and popup.</p>
-      <p>When an event identifier has no corresponding record in the reliable event catalogue, the effect record remains visible and is labelled <strong>No linked event record</strong>. No fallback matching by site name, date, magnitude, or coordinates is performed.</p>
-      <p>Each marker represents one site within one thematic layer. Its popup aggregates all matching records for that site. Popup records are collapsible to keep long site histories readable.</p>
-      <h3>Data status</h3>
-      <p>The current map includes records that are not yet linked to the reliable event catalogue. These records are retained intentionally and clearly marked. Their event links will be corrected in a later data-maintenance stage.</p>
-      <h3>Scope</h3>
-      <p>The symbols represent documented historical effects at reported sites. They do not necessarily represent earthquake epicentres or instrumental ground-motion measurements.</p>
-    </form>
-  </dialog>
-
-  <noscript>This map requires JavaScript.</noscript>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
-  <script type="module" src="./js/map-app.js"></script>
-</body>
-</html>
+<dialog id="about-dialog"><form method="dialog"><div class="dialog-header"><h2>About the data</h2><button class="dialog-close" value="close" aria-label="Close">×</button></div>
+  <p>The accumulated map loads the repository CSV files directly in the browser: <code>v_sites_geo.csv</code>, <code>v_events_dst.csv</code>, <code>v_damage_dst_unified.csv</code>, and <code>v_env_effects_dst_unified.csv</code>. Effect records are joined to sites through <code>Sites_GlobalID → GlobalID</code> and to earthquakes through <code>Event_Id → Id</code>.</p>
+  <h3>Confidence filter</h3><p>The radio buttons under <strong>Layers</strong> are generated automatically from all unique values found in the <code>Rel</code> field of both effect datasets. <strong>All</strong> displays every record. A selected Confidence value filters both thematic layers.</p>
+  <h3>Visual encoding</h3><p><strong>Earthquake Damage:</strong> each circle represents one site. Circle size represents the number of visible damage occurrences at that site after the Confidence filter is applied.</p><p><strong>Environmental Effects:</strong> each square represents one site. Square size represents the number of visible environmental-effect occurrences after filtering. Square colors represent the visible <code>Env_Eff</code> types; a segmented square indicates several effect types at the same site.</p>
+  <h3>Popups</h3><p>Each popup begins with the site name and coordinates. Records are organized by linked earthquake. Damage popups display Confidence, damage and casualty classes, intensity values, building and population totals, casualties, injuries, and description. Environmental popups display Confidence, effect code and name, category, description, and ESI value.</p>
+  <h3>Views</h3><p><strong>Accumulated damage</strong> contains the current map and controls. <strong>Damage/Env Effect by Earthquake(s)</strong> is an empty placeholder for a future earthquake-selection view.</p>
+  <h3>Scope</h3><p>The symbols represent documented historical effects at reported sites. They do not necessarily represent earthquake epicentres or instrumental ground-motion measurements.</p>
+</form></dialog>
+<noscript>This map requires JavaScript.</noscript>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
+<script type="module" src="./js/map-app.js"></script>
+</body></html>
