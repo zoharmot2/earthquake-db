@@ -1,0 +1,42 @@
+{
+  "counts": {
+    "sites": 1000,
+    "events": 349,
+    "damage_records": 1415,
+    "environmental_records": 166
+  },
+  "site_key": {
+    "missing_globalid": 0,
+    "duplicate_globalid": 0
+  },
+  "damage_links": {
+    "missing_site_key": 0,
+    "unlinked_site": 0,
+    "missing_event_id": 0,
+    "unlinked_event": 151
+  },
+  "environmental_links": {
+    "missing_site_key": 0,
+    "unlinked_site": 0,
+    "missing_event_id": 0,
+    "unlinked_event": 4
+  },
+  "sites_coordinates": {
+    "missing_or_invalid_x": 2,
+    "missing_or_invalid_y": 2,
+    "outside_valid_lon": 0,
+    "outside_valid_lat": 0
+  },
+  "damage_coordinates": {
+    "missing_or_invalid_x": 0,
+    "missing_or_invalid_y": 0,
+    "outside_valid_lon": 0,
+    "outside_valid_lat": 0
+  },
+  "environmental_coordinates": {
+    "missing_or_invalid_x": 0,
+    "missing_or_invalid_y": 0,
+    "outside_valid_lon": 0,
+    "outside_valid_lat": 0
+  }
+}

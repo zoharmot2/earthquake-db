@@ -12,76 +12,127 @@ function value(value, fallback = "Not available") {
   return text ? escapeHtml(text) : fallback;
 }
 
+function field(record, ...names) {
+  for (const name of names) {
+    const text = String(record?.[name] ?? "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function detailsRows(rows) {
+  return rows
+    .filter(([, content]) => String(content ?? "").trim())
+    .map(([label, content]) => `
+      <div class="popup-field">
+        <dt>${escapeHtml(label)}</dt>
+        <dd>${value(content)}</dd>
+      </div>`)
+    .join("");
+}
+
 function eventSection(record) {
   if (!record._eventLinked) {
     return `
-      <div class="event-warning">
-        <strong>No linked event record</strong>
-        <span>Event ID: ${value(record._eventId, "Not provided")}</span>
-      </div>`;
+      <aside class="event-link event-link-unlinked" aria-label="Event linkage status">
+        <span class="event-link-icon" aria-hidden="true">!</span>
+        <div>
+          <strong>No linked event record</strong>
+          <span>Event ID: ${value(record._eventId, "Not provided")}</span>
+        </div>
+      </aside>`;
   }
 
   const event = record._event;
   return `
-    <dl>
-      <dt>Linked event</dt>
-      <dd>${value(event.Full_Date)}</dd>
-      <dt>Event ID</dt>
-      <dd>${value(event.Id)}</dd>
-      <dt>Event type</dt>
-      <dd>${value(event.Type)}</dd>
-      <dt>Magnitude</dt>
-      <dd>${value(event.Magnitude_Avg || event.Magnitude)}</dd>
-      <dt>Region</dt>
-      <dd>${value(event.Region)}</dd>
-    </dl>`;
+    <section class="event-link event-link-linked">
+      <div class="event-link-title">Linked event</div>
+      <dl class="popup-fields">
+        ${detailsRows([
+          ["Event ID", event.Id],
+          ["Date", event.Full_Date],
+          ["Event type", event.Type],
+          ["Magnitude", field(event, "Magnitude_Avg", "Magnitude")],
+          ["Region", event.Region],
+        ])}
+      </dl>
+    </section>`;
 }
 
-function recordDescription(record) {
-  const description = String(record.Description ?? "").trim();
-  return description
-    ? `<p class="description">${escapeHtml(description)}</p>`
-    : "";
+function descriptionBlock(record) {
+  const description = field(record, "Description");
+  if (!description) return "";
+  return `
+    <details class="record-details">
+      <summary>Show description</summary>
+      <p class="description">${escapeHtml(description)}</p>
+    </details>`;
+}
+
+function referencesBlock(record) {
+  const reference = field(record, "Reference", "References", "Source");
+  if (!reference) return "";
+  return `
+    <details class="record-details">
+      <summary>Show source information</summary>
+      <p class="description">${escapeHtml(reference)}</p>
+    </details>`;
 }
 
 function renderDamageRecord(record, index) {
+  const severity = field(record, "Damage_Val", "Damage") || "Not available";
   return `
-    <article class="popup-record">
-      <div class="record-number">Damage record ${index + 1}</div>
-      <h4>${value(record.Full_Date, "Undated record")}</h4>
-      <dl>
-        <dt>Damage</dt>
-        <dd>${value(record.Damage_Val || record.Damage)}</dd>
-        <dt>Reliability</dt>
-        <dd>${value(record.Rel)}</dd>
-        <dt>Intensity</dt>
-        <dd>${value(record.EMS98_Value || record.MSK_Value || record.Other_Intensity)}</dd>
-        <dt>Casualties</dt>
-        <dd>${value(record.Causalties_Val || record.Casualties)}</dd>
-      </dl>
-      ${recordDescription(record)}
-      ${eventSection(record)}
-    </article>`;
+    <details class="popup-record" ${index === 0 ? "open" : ""}>
+      <summary>
+        <span>
+          <span class="record-number">Damage record ${index + 1}</span>
+          <strong>${value(record.Full_Date, "Undated record")}</strong>
+        </span>
+        <span class="severity-badge">${value(severity)}</span>
+      </summary>
+      <div class="popup-record-content">
+        <dl class="popup-fields">
+          ${detailsRows([
+            ["Damage severity", severity],
+            ["Reliability", record.Rel],
+            ["Intensity", field(record, "EMS98_Value", "MSK_Value", "Other_Intensity")],
+            ["Casualties", field(record, "Causalties_Val", "Casualties")],
+            ["Record ID", record.Id],
+          ])}
+        </dl>
+        ${descriptionBlock(record)}
+        ${referencesBlock(record)}
+        ${eventSection(record)}
+      </div>
+    </details>`;
 }
 
 function renderEnvironmentalRecord(record, index) {
+  const effect = field(record, "Env_Eff_Val", "Env_Eff") || "Not available";
   return `
-    <article class="popup-record">
-      <div class="record-number">Environmental record ${index + 1}</div>
-      <h4>${value(record.Full_Date, "Undated record")}</h4>
-      <dl>
-        <dt>Effect</dt>
-        <dd>${value(record.Env_Eff_Val || record.Env_Eff)}</dd>
-        <dt>Category</dt>
-        <dd>${value(record.Category)}</dd>
-        <dt>Reliability</dt>
-        <dd>${value(record.Rel)}</dd>
-        <dt>ESI value</dt>
-        <dd>${value(record.ESI_Val || record.ESI_Num)}</dd>
-      </dl>
-      ${recordDescription(record)}
-      ${eventSection(record)}
-    </article>`;
+    <details class="popup-record" ${index === 0 ? "open" : ""}>
+      <summary>
+        <span>
+          <span class="record-number">Environmental record ${index + 1}</span>
+          <strong>${value(record.Full_Date, "Undated record")}</strong>
+        </span>
+        <span class="severity-badge">${value(record.Env_Eff || "Unknown")}</span>
+      </summary>
+      <div class="popup-record-content">
+        <dl class="popup-fields">
+          ${detailsRows([
+            ["Effect type", effect],
+            ["Category", record.Category],
+            ["ESI 2007", field(record, "ESI_Val", "ESI_Num")],
+            ["Reliability", record.Rel],
+            ["Record ID", record.Id],
+          ])}
+        </dl>
+        ${descriptionBlock(record)}
+        ${referencesBlock(record)}
+        ${eventSection(record)}
+      </div>
+    </details>`;
 }
 
 export function renderSitePopup(group, layerName, records) {
@@ -89,6 +140,8 @@ export function renderSitePopup(group, layerName, records) {
   const subtitle = layerName === "damage"
     ? "Earthquake Damage"
     : "Environmental Effects";
+  const linkedCount = records.filter((record) => record._eventLinked).length;
+  const unlinkedCount = records.length - linkedCount;
 
   const renderedRecords = records
     .map((record, index) =>
@@ -100,8 +153,13 @@ export function renderSitePopup(group, layerName, records) {
 
   return `
     <div class="popup-header">
+      <p class="popup-layer-label">${subtitle}</p>
       <h3>${siteName}</h3>
-      <p>${subtitle} · ${records.length} record${records.length === 1 ? "" : "s"}</p>
+      <div class="popup-site-meta">
+        <span>${records.length} record${records.length === 1 ? "" : "s"}</span>
+        <span>${linkedCount} linked</span>
+        ${unlinkedCount ? `<span class="meta-warning">${unlinkedCount} unlinked</span>` : ""}
+      </div>
     </div>
     <div class="popup-body">${renderedRecords}</div>`;
 }

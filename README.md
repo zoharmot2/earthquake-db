@@ -1,50 +1,166 @@
-# Historical Earthquake Database
+# earthquake-db
 
-[![DOI](https://zenodo.org/badge/DOI/XXXXX.svg)](https://doi.org/10.5281/zenodo.20442318)
+**earthquake-db** is a harmonized geospatial dataset and interactive map of
+historical earthquake damage and environmental effects in the Dead Sea
+Transform region.
 
-A harmonized geospatial database of historical earthquakes, earthquake damage, environmental effects, and affected archaeological and historical sites in the Dead Sea Transform region.
+This repository is currently preparing **Version 1.1**. The map is functional,
+but the release has not yet been declared stable.
 
-## Overview
+## Interactive map
 
-This repository provides datasets supporting historical earthquake research in the Levant. The database integrates historical sources, archaeological evidence, and environmental observations into a standardized relational structure suitable for GIS, statistical analysis, and historical seismology.
+The GitHub Pages map loads the repository CSV files directly in the browser.
+There is no backend and no build-time data aggregation.
 
-## Repository Contents
+### Thematic layers
 
-| File | Description |
-|------|-------------|
-| a_sites_geo.csv | Geographic information for historical and archaeological sites |
-| v_events_dst_reliable.csv | Reliable earthquake events |
-| v_events_dst_doubtful.csv | Doubtful earthquake events |
-| v_events_dst_reliable_damaging.csv | Damaging earthquake events |
-| v_events_dst_reliable_damaging_destructive.csv | Destructive earthquake events |
-| v_events_off_dst_reliable.csv | Reliable earthquakes outside the Dead Sea Transform |
-| v_damage_dst_reliable.csv | Earthquake damage observations |
-| v_damage_jerusalem.csv | Jerusalem-specific damage records |
-| v_env_effects_dst_reliable.csv | Environmental earthquake effects |
-| Earthquake Database Statistics.ipynb | Statistical summaries and exploratory analyses |
+#### Earthquake Damage
 
-## Database Summary
+- Symbol: circle
+- Symbol size: highest visible `Damage_Val` at the site
+- Ordered values:
+  - Felt
+  - Light
+  - Moderate
+  - Heavy
+  - Severe
+- Unknown and missing values use the smallest circle.
 
-- 373 reliable earthquake events
-- 134 doubtful earthquake events
-- 1,481 historical damage observations
-- 167 environmental effects
-- 1,001 archaeological and historical sites
+#### Environmental Effects
 
-## Citation
+- Symbol: square
+- Symbol color: `Env_Eff`
+- Symbol size: highest visible `ESI_Val` at the site
+- If several environmental-effect types occur at a site, the square is divided
+  into colored segments.
 
-Please cite the Zenodo DOI corresponding to the specific version used.
+### Base maps
 
-DOI: https://doi.org/10.5281/zenodo.20442318
+Users can select:
 
-## License
+- OpenStreetMap — default
+- Light map
+- Satellite
 
-This repository is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). See the LICENSE file for details.
+## Data relationships
 
-## Acknowledgements
+All joins are identifier-based.
 
-This repository and its accompanying documentation were developed with the assistance of artificial intelligence (AI) tools for drafting, editing, and software development support. All scientific content, database design, data compilation, validation, and final editorial decisions were reviewed and approved by the author. AI assistance did not replace scientific judgment or data validation.
+```text
+v_sites_geo.GlobalID
+        ↓
+Sites_GlobalID
+```
 
-## Version
+This relationship connects sites to both damage and environmental-effect
+records.
 
-Current release: **v1.0.2**
+```text
+v_events_dst_reliable.Id
+        ↓
+Event_Id
+```
+
+This relationship connects effect records to the reliable event catalogue.
+
+The application never uses site names, event names, dates, magnitudes, or
+coordinates as fallback join keys.
+
+## Records without linked events
+
+A record remains visible when its `Event_Id` is not found in the reliable event
+catalogue. Its popup displays:
+
+```text
+No linked event record
+```
+
+Current expected status:
+
+- 151 damage records without a linked event
+- 4 environmental-effect records without a linked event
+
+These records will be corrected in a later data-maintenance stage.
+
+## Repository structure
+
+```text
+earthquake-db/
+├── index.html
+├── css/
+│   └── map.css
+├── js/
+│   ├── data-loader.js
+│   ├── map-app.js
+│   └── popup-renderer.js
+├── data/
+│   ├── v_sites_geo.csv
+│   ├── v_events_dst_reliable.csv
+│   ├── v_damage_dst_reliable.csv
+│   ├── v_env_effects_dst_reliable.csv
+│   └── other existing project data files
+└── docs/
+    ├── v1.1-testing-checklist.md
+    ├── data-dictionary-map.md
+    └── qa-report.json
+```
+
+All existing data files retain their filenames and remain directly under the
+single `data/` directory.
+
+## Local testing
+
+Run from the repository root:
+
+```powershell
+py -m http.server 8000
+```
+
+Then open:
+
+```text
+http://localhost:8000/
+```
+
+Do not open the page with `file://`, because browsers usually prevent direct
+CSV loading from local files.
+
+## GitHub Pages deployment
+
+The intended deployment is:
+
+- branch: `main`
+- folder: repository root
+- source: Deploy from a branch
+
+Updated CSV files are reflected on the next map load or refresh.
+
+## Current v1.1 status
+
+Completed:
+
+- direct CSV loading;
+- identifier-only joins;
+- one marker per site per thematic layer;
+- aggregated popups;
+- three selectable base maps;
+- damage and environmental symbology;
+- dynamic layer legends;
+- site search;
+- linked/unlinked event filter;
+- responsive interface;
+- improved popup readability;
+- automated structural QA report.
+
+Still required before declaring v1.1 stable:
+
+- manual browser testing;
+- mobile-device testing;
+- final review of popup content;
+- final documentation and release-note review;
+- confirmation that no console errors occur on GitHub Pages.
+
+## Citation and licence
+
+Citation instructions and licensing information should be finalized before the
+v1.1 release is published.

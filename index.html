@@ -99,7 +99,11 @@
       <p><strong>Earthquake Damage:</strong> circle size represents the highest visible <code>Damage_Val</code> recorded at the site. The ordered classes are Felt, Light, Moderate, Heavy, and Severe. Records with an unknown or missing value use the smallest symbol.</p>
       <p><strong>Environmental Effects:</strong> square size represents the highest visible value parsed from <code>ESI_Val</code>. Square colors represent the environmental-effect codes in <code>Env_Eff</code>. When several effect types occur at one site, the square is divided into colored segments so that all visible types remain represented. The map legend lists the effect-type colors, while the ESI value remains available in the tooltip and popup.</p>
       <p>When an event identifier has no corresponding record in the reliable event catalogue, the effect record remains visible and is labelled <strong>No linked event record</strong>. No fallback matching by site name, date, magnitude, or coordinates is performed.</p>
-      <p>Each marker represents one site within one thematic layer. Its popup aggregates all matching records for that site.</p>
+      <p>Each marker represents one site within one thematic layer. Its popup aggregates all matching records for that site. Popup records are collapsible to keep long site histories readable.</p>
+      <h3>Data status</h3>
+      <p>The current map includes records that are not yet linked to the reliable event catalogue. These records are retained intentionally and clearly marked. Their event links will be corrected in a later data-maintenance stage.</p>
+      <h3>Scope</h3>
+      <p>The symbols represent documented historical effects at reported sites. They do not necessarily represent earthquake epicentres or instrumental ground-motion measurements.</p>
     </form>
   </dialog>
 
