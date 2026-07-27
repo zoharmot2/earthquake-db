@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive map of historical earthquake damage and environmental effects in the Dead Sea Transform region.">
+  <title>earthquake-db — Interactive Map</title>
+
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIINfQ3pZ6ZLh4t5l0w4nG8bY5ZB5A5p2Xk="
+        crossorigin="">
+  <link rel="stylesheet" href="./css/map.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">earthquake-db v1.1</p>
+        <h1>Historical Earthquake Effects Map</h1>
+        <p class="subtitle">Damage and environmental effects in the Dead Sea Transform region</p>
+      </div>
+      <button id="about-button" class="secondary-button" type="button">About the data</button>
+    </header>
+
+    <main class="map-layout">
+      <aside class="control-panel" aria-label="Map controls">
+        <section class="panel-section">
+          <h2>Explore</h2>
+          <label for="site-search">Find a site</label>
+          <div class="search-row">
+            <input id="site-search" type="search" placeholder="Enter a site name" autocomplete="off">
+            <button id="search-button" type="button">Search</button>
+          </div>
+          <div id="search-results" class="search-results" role="listbox" aria-live="polite"></div>
+        </section>
+
+        <section class="panel-section">
+          <h2>Layers</h2>
+          <label class="check-row">
+            <input id="damage-toggle" type="checkbox" checked>
+            <span class="layer-dot damage-dot"></span>
+            <span>Earthquake Damage</span>
+          </label>
+          <label class="check-row">
+            <input id="environmental-toggle" type="checkbox" checked>
+            <span class="layer-dot environmental-dot"></span>
+            <span>Environmental Effects</span>
+          </label>
+        </section>
+
+        <section class="panel-section">
+          <h2>Event linkage</h2>
+          <label for="link-filter">Show records</label>
+          <select id="link-filter">
+            <option value="all">All records</option>
+            <option value="linked">Linked event records only</option>
+            <option value="unlinked">No linked event record only</option>
+          </select>
+          <p class="help-text">Unlinked records remain visible and are clearly labelled in their popup.</p>
+        </section>
+
+        <section class="panel-section">
+          <h2>Map summary</h2>
+          <dl class="summary-grid">
+            <div><dt>Damage sites</dt><dd id="damage-site-count">—</dd></div>
+            <div><dt>Environmental sites</dt><dd id="environmental-site-count">—</dd></div>
+            <div><dt>Damage records</dt><dd id="damage-record-count">—</dd></div>
+            <div><dt>Environmental records</dt><dd id="environmental-record-count">—</dd></div>
+          </dl>
+          <p id="visible-summary" class="visible-summary">Loading data…</p>
+        </section>
+
+        <section class="panel-section compact">
+          <button id="reset-button" class="secondary-button full-width" type="button">Reset map</button>
+        </section>
+      </aside>
+
+      <section class="map-panel">
+        <div id="loading-overlay" class="loading-overlay">
+          <div class="spinner" aria-hidden="true"></div>
+          <p>Loading earthquake data…</p>
+        </div>
+        <div id="map" aria-label="Interactive earthquake effects map"></div>
+        <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="about-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <h2>About the data</h2>
+        <button class="dialog-close" value="close" aria-label="Close">×</button>
+      </div>
+      <p>The map loads the repository CSV files directly in the browser. Site records are joined only through <code>Sites_GlobalID → GlobalID</code>. Event records are joined only through <code>Event_Id → Id</code>.</p>
+      <p>When an event identifier has no corresponding record in the reliable event catalogue, the effect record remains visible and is labelled <strong>No linked event record</strong>. No fallback matching by site name, date, magnitude, or coordinates is performed.</p>
+      <p>Each marker represents one site within one thematic layer. Its popup aggregates all matching records for that site.</p>
+    </form>
+  </dialog>
+
+  <noscript>This map requires JavaScript.</noscript>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
+  <script type="module" src="./js/map-app.js"></script>
+</body>
+</html>
