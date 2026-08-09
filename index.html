@@ -26,16 +26,27 @@
     <section id="accumulated-panel" class="tab-panel" role="tabpanel" aria-labelledby="accumulated-tab">
       <main class="map-layout">
         <aside class="control-panel" aria-label="Map controls">
-          <section class="panel-section"><h2>Explore</h2><label for="site-search">Find a site</label><div class="search-row"><input id="site-search" type="search" placeholder="Enter a site name" autocomplete="off"><button id="search-button" type="button">Search</button></div><div id="search-results" class="search-results" role="listbox" aria-live="polite"></div></section>
-          <section class="panel-section"><h2>Layers</h2>
-            <label class="check-row"><input id="damage-toggle" type="checkbox" checked><span class="layer-dot damage-dot"></span><span>Earthquake Damage</span></label>
-            <label class="check-row"><input id="environmental-toggle" type="checkbox" checked><span class="layer-square environmental-dot"></span><span>Environmental Effects</span></label>
-            <fieldset class="confidence-fieldset"><legend>Confidence</legend><div id="confidence-options" class="radio-options" aria-live="polite"><span class="help-text">Loading values…</span></div></fieldset>
-          </section>
-          <section class="panel-section"><h2>Map summary</h2><dl class="summary-grid"><div><dt>Damage sites</dt><dd id="damage-site-count">—</dd></div><div><dt>Environmental sites</dt><dd id="environmental-site-count">—</dd></div><div><dt>Damage records</dt><dd id="damage-record-count">—</dd></div><div><dt>Environmental records</dt><dd id="environmental-record-count">—</dd></div></dl><p id="visible-summary" class="visible-summary">Loading data…</p></section>
-          <section class="panel-section compact"><button id="reset-button" class="secondary-button full-width" type="button">Reset map</button></section>
+          <section class="panel-section explore-section"><h2>Explore</h2><label for="site-search">Find a site</label><div class="search-row"><input id="site-search" type="search" placeholder="Enter a site name" autocomplete="off"><button id="search-button" type="button">Search</button></div><div id="search-results" class="search-results" role="listbox" aria-live="polite"></div></section>
+          <div id="filters-drawer" class="filters-drawer" aria-label="Layers and filters">
+            <div class="embed-drawer-header"><strong>Layers &amp; filters</strong><button id="embed-filter-close" class="embed-icon-button" type="button" aria-label="Close layers and filters">×</button></div>
+            <section class="panel-section"><h2>Layers</h2>
+              <label class="check-row"><input id="damage-toggle" type="checkbox" checked><span class="layer-dot damage-dot"></span><span>Earthquake Damage</span></label>
+              <label class="check-row"><input id="environmental-toggle" type="checkbox" checked><span class="layer-square environmental-dot"></span><span>Environmental Effects</span></label>
+              <fieldset class="confidence-fieldset"><legend>Confidence</legend><div id="confidence-options" class="radio-options" aria-live="polite"><span class="help-text">Loading values…</span></div></fieldset>
+            </section>
+            <section class="panel-section"><h2>Map summary</h2><dl class="summary-grid"><div><dt>Damage sites</dt><dd id="damage-site-count">—</dd></div><div><dt>Environmental sites</dt><dd id="environmental-site-count">—</dd></div><div><dt>Damage records</dt><dd id="damage-record-count">—</dd></div><div><dt>Environmental records</dt><dd id="environmental-record-count">—</dd></div></dl><p id="visible-summary" class="visible-summary">Loading data…</p></section>
+            <section class="panel-section compact"><button id="reset-button" class="secondary-button full-width" type="button">Reset map</button></section>
+          </div>
         </aside>
-        <section class="map-panel"><div id="loading-overlay" class="loading-overlay"><div class="spinner" aria-hidden="true"></div><p>Loading earthquake data…</p></div><div id="map" aria-label="Interactive earthquake effects map"></div><div id="status-message" class="status-message" role="status" aria-live="polite"></div></section>
+        <section class="map-panel">
+          <div id="loading-overlay" class="loading-overlay"><div class="spinner" aria-hidden="true"></div><p>Loading earthquake data…</p></div>
+          <div id="map" aria-label="Interactive earthquake effects map"></div>
+          <div class="embed-map-actions" aria-label="Embedded map actions">
+            <button id="embed-filter-button" class="embed-action-button" type="button" aria-controls="filters-drawer" aria-expanded="false">Filters</button>
+            <button id="embed-about-button" class="embed-action-button embed-action-secondary" type="button">About</button>
+          </div>
+          <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
+        </section>
       </main>
     </section>
 
