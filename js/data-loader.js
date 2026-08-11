@@ -8,7 +8,7 @@ const DATA_FILES = Object.freeze({
 const REQUIRED_COLUMNS = Object.freeze({
   sites: ["GlobalID", "SITE_NAME", "POINT_X", "POINT_Y"],
   events: ["Id", "Full_Date"],
-  damage: ["Id", "Sites_GlobalID", "Event_Id", "Rel"],
+  damage: ["Id", "Sites_GlobalID", "Event_Id", "Rel", "Refrences", "Links"],
   environmental: ["Id", "Sites_GlobalID", "Event_Id", "Rel"],
 });
 
@@ -58,9 +58,27 @@ function enrichRecords(rows, layerName, siteIndex, eventIndex) {
   const records = rows.map((row, arrayIndex) => {
     const siteGlobalId = key(row.Sites_GlobalID);
     const eventId = key(row.Event_Id);
-    const site = siteIndex.get(siteGlobalId) ?? null;
+    let site = siteIndex.get(siteGlobalId) ?? null;
     const event = eventIndex.get(eventId) ?? null;
-    if (!site) unlinkedSites.push({ csvRow: arrayIndex + 2, recordId: key(row.Id), siteGlobalId });
+    if (!site) {
+      unlinkedSites.push({ csvRow: arrayIndex + 2, recordId: key(row.Id), siteGlobalId });
+      // The unified effect views also carry site name and coordinates.  If a
+      // published effect record temporarily refers to a Site GlobalID that is
+      // absent from v_sites_geo.csv, keep the record mappable instead of
+      // preventing the entire application from loading.
+      const x = numberOrNull(row.POINT_X);
+      const y = numberOrNull(row.POINT_Y);
+      if (x !== null && y !== null) {
+        site = {
+          GlobalID: siteGlobalId,
+          SITE_NAME: key(row.SITE_NAME) || "Unlinked site",
+          S_NAME: key(row.SITE_NAME),
+          POINT_X: String(row.POINT_X ?? ""),
+          POINT_Y: String(row.POINT_Y ?? ""),
+          _fallbackFromEffectView: true,
+        };
+      }
+    }
     if (!event) unlinkedEvents.push({ csvRow: arrayIndex + 2, recordId: key(row.Id), eventId });
     return { ...row, _layer: layerName, _siteGlobalId: siteGlobalId, _eventId: eventId, _site: site, _event: event };
   });
@@ -102,22 +120,27 @@ export async function loadEarthquakeDatabase() {
   const damageResult = enrichRecords(damage, "damage", siteIndex, eventIndex);
   const environmentalResult = enrichRecords(environmental, "environmental", siteIndex, eventIndex);
 
-  if (damageResult.unlinkedSites.length || environmentalResult.unlinkedSites.length) {
-    throw new Error("One or more effect records could not be linked to a site.");
-  }
-  if (damageResult.unlinkedEvents.length || environmentalResult.unlinkedEvents.length) {
-    throw new Error("One or more effect records could not be linked to an earthquake event.");
-  }
+  // Data-quality issues should be reported without taking both maps offline.
+  // Records with an unlinked site are still displayed when the unified view
+  // supplies usable coordinates; records with no usable site or event remain
+  // in the raw data/report for QA but are omitted from map grouping as needed.
+  const warnings = {
+    unlinkedSites: [...damageResult.unlinkedSites, ...environmentalResult.unlinkedSites],
+    unlinkedEvents: [...damageResult.unlinkedEvents, ...environmentalResult.unlinkedEvents],
+  };
 
   const damageGroups = groupBySite(damageResult.records);
   const environmentalGroups = groupBySite(environmentalResult.records);
   return {
     raw: { sites, events, damage, environmental },
     layers: { damage: damageGroups, environmental: environmentalGroups },
-    report: { counts: {
-      sites: sites.length, events: events.length,
-      damageRecords: damage.length, environmentalRecords: environmental.length,
-      damageSites: damageGroups.size, environmentalSites: environmentalGroups.size,
-    }},
+    report: {
+      counts: {
+        sites: sites.length, events: events.length,
+        damageRecords: damage.length, environmentalRecords: environmental.length,
+        damageSites: damageGroups.size, environmentalSites: environmentalGroups.size,
+      },
+      warnings,
+    },
   };
 }

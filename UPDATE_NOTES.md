@@ -53,3 +53,10 @@ The QA report is supplied as:
 ### Site title
 - Updated the browser/page title to `Dead Sea Transform Historical Earthquakes`.
 - Updated the main visible site heading to `Dead Sea Transform Historical Earthquakes`.
+
+## v1.2 development — selected-earthquake map r5
+- Suppress records assigned to the `Unknown` site from the second map; report them separately as additional unassigned reports in event statistics/summary.
+- Normalize severity `U` to `Unknown` in user-facing popup/statistical displays, and sort Unknown last in statistical breakdowns.
+- Remove permanent site-name labels from the second map; site names remain available on marker hover.
+- Render valid HTTP/HTTPS values in the damage `Links` field as clickable links opening in a new browser tab in tooltips (both maps) and popups.
+- Harden `?embed=1` layout by explicitly forcing the accumulated map panel to fill the iframe viewport and re-invalidating/refitting the Leaflet map after embed initialization.

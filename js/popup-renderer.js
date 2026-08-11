@@ -2,9 +2,26 @@ const escapeHtml = (value) => String(value ?? "")
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 
-const present = (value) => value !== null && value !== undefined && String(value).trim() !== "";
+const present = (value) => value !== null && value !== undefined && String(value).trim() !== "" && String(value).trim().toUpperCase() !== "NULL";
 const display = (value) => present(value) ? escapeHtml(value) : "—";
-const confidenceDisplay = (value) => String(value ?? "").trim() === "U" ? "Unknown" : display(value);
+const confidenceDisplay = (value) => ["U","UNKNOWN"].includes(String(value ?? "").trim().toUpperCase()) ? "Unknown" : display(value);
+
+function safeHttpUrl(value) {
+  const raw = String(value ?? "").trim();
+  if (!/^https?:\/\//i.test(raw)) return null;
+  try {
+    const url = new URL(raw);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch { return null; }
+}
+function renderLinksValue(value) {
+  if (!present(value)) return "—";
+  const parts = String(value).split(/\s*;\s*/).filter(Boolean);
+  return parts.map((part) => {
+    const url = safeHttpUrl(part);
+    return url ? `<a class="popup-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(part)}</a>` : escapeHtml(part);
+  }).join("; ");
+}
 
 function coordinateText(site) {
   const lng = Number(site.POINT_X);
@@ -16,7 +33,8 @@ function coordinateText(site) {
 function rows(record, fields) {
   return fields.map(([label, field]) => {
     const isConfidence = field === "Rel";
-    const value = isConfidence ? confidenceDisplay(record[field]) : display(record[field]);
+    const isSeverity = field === "Damage_Val" || field === "ESI_Val";
+    const value = field === "Links" ? renderLinksValue(record[field]) : isConfidence || isSeverity ? confidenceDisplay(record[field]) : display(record[field]);
     return `<div class="popup-field${isConfidence ? " popup-field-confidence" : ""}">
       <dt>${escapeHtml(label)}</dt><dd>${value}</dd>
     </div>`;
@@ -40,6 +58,7 @@ const DAMAGE_FIELDS = [
   ["EMS-98", "EMS98_Value"], ["MSK", "MSK_Value"], ["Other intensity", "Other_Intensity"],
   ["Total buildings", "Total_Bld"], ["Damaged buildings", "Damaged_Bld"], ["Total population", "Total_Pop"],
   ["Casualties", "Casualties"], ["Injuries", "Injuries"], ["Description", "Description"],
+  ["References", "Refrences"], ["Links", "Links"],
 ];
 
 const ENV_FIELDS = [
@@ -73,4 +92,17 @@ export function renderSitePopup(group, layerName, records) {
       <p class="popup-coordinates">${coordinateText(group.site)}</p>
     </div>
     <div class="popup-body">${events.map((event) => renderEventGroup(event, layerName)).join("")}</div>`;
+}
+
+export function renderDamageTooltip(group, records) {
+  const siteName = group.site.SITE_NAME || group.site.S_NAME || "Unnamed site";
+  const references = [...new Set(records.map((record) => String(record.Refrences ?? "").trim()).filter((value) => value && value.toUpperCase() !== "NULL"))];
+  const links = [...new Set(records.map((record) => String(record.Links ?? "").trim()).filter((value) => value && value.toUpperCase() !== "NULL"))];
+  const countText = `${records.length} damage occurrence${records.length === 1 ? "" : "s"}`;
+  return `<div class="damage-tooltip">
+    <strong>${display(siteName)}</strong>
+    <span>${escapeHtml(countText)}</span>
+    <span><b>References:</b> ${references.length ? references.map(escapeHtml).join("; ") : "—"}</span>
+    <span><b>Links:</b> ${links.length ? links.map(renderLinksValue).join("; ") : "—"}</span>
+  </div>`;
 }

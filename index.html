@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="preconnect" href="https://tile.openstreetmap.org">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="./css/map.css">
+  <link rel="stylesheet" href="./css/map.css?v=1.2.0-r5">
 </head>
 <body>
 <div class="app-shell">
@@ -50,8 +50,54 @@
       </main>
     </section>
 
-    <section id="earthquake-panel" class="tab-panel empty-tab" role="tabpanel" aria-labelledby="earthquake-tab" hidden>
-      <div><h2>Damage/Env Effect by Earthquake(s)</h2><p>This view is reserved for a future release.</p></div>
+    <section id="earthquake-panel" class="tab-panel" role="tabpanel" aria-labelledby="earthquake-tab" hidden>
+      <main class="map-layout earthquake-map-layout">
+        <aside class="control-panel earthquake-control-panel" aria-label="Earthquake selection controls">
+          <section class="panel-section">
+            <h2>Select earthquake</h2>
+            <label for="earthquake-select">Earthquake event</label>
+            <select id="earthquake-select" disabled>
+              <option value="">Loading earthquakes…</option>
+            </select>
+            <fieldset class="confidence-fieldset earthquake-confidence-fieldset">
+              <legend>Event Confidence</legend>
+              <div id="earthquake-confidence-options" class="radio-options" aria-live="polite"><span class="help-text">Loading values…</span></div>
+            </fieldset>
+            <p id="earthquake-selection-summary" class="visible-summary">Select an earthquake to display its damage and environmental-effect records.</p>
+          </section>
+          <section class="panel-section">
+            <h2>Layers</h2>
+            <label class="check-row"><input id="earthquake-damage-toggle" type="checkbox" checked><span class="layer-dot damage-dot"></span><span>Earthquake Damage</span></label>
+            <label class="check-row"><input id="earthquake-environmental-toggle" type="checkbox" checked><span class="layer-square environmental-dot"></span><span>Environmental Effects</span></label>
+          </section>
+          <section class="panel-section earthquake-statistics-section">
+            <h2>Selected earthquake statistics</h2>
+            <div id="earthquake-statistics-empty" class="help-text">Select an earthquake to view statistics by record confidence (Rel) and severity.</div>
+            <div id="earthquake-statistics" hidden>
+              <div class="stat-layer-block">
+                <div class="stat-layer-heading"><span class="layer-dot damage-dot"></span><h3>Earthquake Damage</h3></div>
+                <p id="earthquake-damage-total" class="stat-total"></p>
+                <h4>Confidence (Rel)</h4>
+                <div id="earthquake-damage-rel-stats" class="compact-stat-table"></div>
+                <h4>Severity (Damage_Val)</h4>
+                <div id="earthquake-damage-severity-stats" class="compact-stat-table"></div>
+              </div>
+              <div class="stat-layer-block">
+                <div class="stat-layer-heading"><span class="layer-square environmental-dot"></span><h3>Environmental Effects</h3></div>
+                <p id="earthquake-environmental-total" class="stat-total"></p>
+                <h4>Confidence (Rel)</h4>
+                <div id="earthquake-environmental-rel-stats" class="compact-stat-table"></div>
+                <h4>Severity (ESI_Val)</h4>
+                <div id="earthquake-environmental-severity-stats" class="compact-stat-table"></div>
+              </div>
+            </div>
+          </section>
+        </aside>
+        <section class="map-panel">
+          <div id="earthquake-map" aria-label="Damage and environmental-effects map for selected earthquake"></div>
+          <div id="earthquake-status-message" class="status-message" role="status" aria-live="polite"></div>
+        </section>
+      </main>
     </section>
   </div>
 </div>
@@ -60,12 +106,12 @@
   <p>The accumulated map loads the repository CSV files directly in the browser: <code>v_sites_geo.csv</code>, <code>v_events_dst.csv</code>, <code>v_damage_dst_unified.csv</code>, and <code>v_env_effects_dst_unified.csv</code>. Effect records are joined to sites through <code>Sites_GlobalID → GlobalID</code> and to earthquakes through <code>Event_Id → Id</code>.</p>
   <h3>Confidence filter</h3><p>The shared Confidence filter uses a fixed ordered scale for both thematic layers: Poor, Doubtful, Unknown, Moderate, High, and Very High. <strong>All</strong> displays every record. The displayed value <strong>Unknown</strong> also supports legacy records stored as <code>U</code>.</p>
   <h3>Visual encoding</h3><p><strong>Earthquake Damage:</strong> each circle represents one site. Circle size represents the number of visible damage occurrences at that site after the Confidence filter is applied.</p><p><strong>Environmental Effects:</strong> each square represents one site. Square size represents the number of visible environmental-effect occurrences after filtering. Square colors represent the visible <code>Env_Eff</code> types; a segmented square indicates several effect types at the same site. The legend lists environmental effect types by color and does not repeat occurrence-size classes.</p>
-  <h3>Popups</h3><p>Each popup begins with the site name and coordinates. Linked earthquakes are displayed sequentially in a vertically scrollable list, with only the earthquake date shown as each section heading. The Confidence field is visually emphasized. Damage popups display damage and casualty classes, intensity values, building and population totals, casualties, injuries, and description. Environmental popups display effect code and name, category, description, and ESI value.</p>
-  <h3>Views</h3><p><strong>Accumulated damage</strong> contains the current map and controls. <strong>Damage/Env Effect by Earthquake(s)</strong> is an empty placeholder for a future earthquake-selection view.</p>
+  <h3>Popups and tooltips</h3><p>Each popup begins with the site name and coordinates. Linked earthquakes are displayed sequentially in a vertically scrollable list, with only the earthquake date shown as each section heading. The Confidence field is visually emphasized. Damage popups display damage and casualty classes, intensity values, building and population totals, casualties, injuries, description, references, and links. Damage tooltips in both maps also include the new References and Links fields. Environmental popups display effect code and name, category, description, and ESI value.</p>
+  <h3>Views</h3><p><strong>Accumulated damage</strong> contains the accumulated damage and environmental-effects map. <strong>Damage/Env Effect by Earthquake(s)</strong> provides an earthquake selector; the event list can be filtered by event Confidence, and selecting an earthquake displays all linked damage and environmental-effect records in separate toggleable layers, with per-event statistics by record confidence and severity.</p>
   <h3>Scope</h3><p>The symbols represent documented historical effects at reported sites. They do not necessarily represent earthquake epicentres or instrumental ground-motion measurements.</p>
 </form></dialog>
 <noscript>This map requires JavaScript.</noscript>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
-<script type="module" src="./js/map-app.js"></script>
+<script type="module" src="./js/map-app.js?v=1.2.0-r5"></script>
 </body></html>
