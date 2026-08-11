@@ -1,5 +1,5 @@
-import { loadEarthquakeDatabase } from "./data-loader.js?v=1.2.0-r5";
-import { renderSitePopup, renderDamageTooltip } from "./popup-renderer.js?v=1.2.0-r5";
+import { loadEarthquakeDatabase } from "./data-loader.js?v=1.2.0";
+import { renderSitePopup, renderDamageTooltip } from "./popup-renderer.js?v=1.2.0";
 
 // v1.2 Embed API: ?embed=1 activates the iframe-friendly layout while
 // preserving the same application code, controls, data loading, and map logic.

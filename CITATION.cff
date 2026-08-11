@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: "Historical Earthquake Database of the Dead Sea Transform Region"
-message: "If you use this database in your research, please cite the archived Zenodo version used."
+message: "If you use this database in your research, please cite the archived Zenodo version used. The v1.2 version-specific DOI should be added after Zenodo publication."
 type: dataset
 authors:
   - family-names: "Zohar"
@@ -15,8 +15,7 @@ authors:
     given-names: "Jefferson"
     affiliation: "School of Environmental Sciences, University of Haifa"
     orcid: "https://orcid.org/0000-0002-2737-2635"
-version: "1.0.2"
-doi: "10.5281/zenodo.21509359"
+version: "1.2.0"
 license: "CC-BY-4.0"
 keywords:
   - historical earthquakes

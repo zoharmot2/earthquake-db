@@ -1,62 +1,47 @@
-# earthquake-db v1.1 — Real correction package
+# earthquake-db v1.2 — Release Candidate Preparation
 
-Status: **Review update only**. This package does not close or release v1.1.
+Status: **Functional QA complete; external deployment and publication pending.**
 
-## Replace these files
+This release candidate contains the functionally tested v1.2 application. No visual redesign was performed as part of final pre-release QA.
 
-- `index.html`
-- `js/map-app.js`
-- `js/popup-renderer.js`
-- `css/map.css`
+## Functional scope completed
 
-The QA report is supplied as:
-- `docs/v1.1-correction-qa.json`
+- Accumulated damage/environmental-effects map retained and regression-tested.
+- Selected-earthquake map implemented in the second tab.
+- Earthquake selector and event-Confidence filtering implemented.
+- Selected-event map statistics and layer toggles implemented.
+- `?embed=1` Embed Mode implemented and functionally tested in a generic iframe harness.
+- Expanded damage schema supported with `Refrences` and `Links`.
+- Damage popups and tooltips in both map views display the new fields.
+- HTTP/HTTPS values in `Links` are rendered as safe clickable links; other identifiers remain text.
+- Local CSS/JS assets use v1.2 release cache-busting parameters.
 
-## Implemented corrections
+## Functional QA result
 
-### Confidence filter
-- Uses a fixed scale instead of deriving the interface from the current data.
-- `All` is aligned with the left column.
-- Left column, top to bottom: Poor, Doubtful, Unknown.
-- Right column, top to bottom: Moderate, High, Very High.
-- Both `U` and `Unknown` are treated as the displayed/filter value `Unknown`.
-- The two-column arrangement is retained on narrow screens.
+**PASS — no v1.2 functional regression blocker found.**
 
-### Popup
-- Removes the thematic layer label.
-- Removes the earthquake count and occurrence count from the popup header.
-- Removes event ID and event label from earthquake headings.
-- Displays only the earthquake date as stored in the data.
-- Displays earthquake sections sequentially in one vertically scrollable popup.
-- Visually emphasizes the Confidence field.
-- Offsets the popup slightly right and upward while retaining Leaflet auto-pan and keep-in-view behavior.
+Validated data counts:
 
-### Legend
-- Earthquake Damage retains occurrence-size classes.
-- Environmental Effects show only effect-type color symbology, without occurrence-size classes.
+- 1,000 sites
+- 389 events
+- 1,297 damage records
+- 241 environmental-effect records
 
-### About dialog
-- Updated to describe the fixed shared Confidence scale.
-- Updated to describe the scrollable date-only earthquake sections.
-- Clarifies that environmental occurrence-size classes are not repeated in the legend.
+No duplicate primary identifiers or broken Site/Event links were found in the tested release candidate.
 
-## QA completed
+The 1927-07-11 event was used as a selected-earthquake benchmark and produced 140 mapped damage records at 140 sites and 32 mapped environmental-effect records at 32 sites.
 
-- JavaScript syntax checks passed for all three JS modules.
-- 1,001 sites, 389 events, 1,298 damage records, and 241 environmental records checked.
-- No missing or invalid site links.
-- No missing or invalid event links.
-- All six Confidence values occur in the current datasets.
-- Browser-based visual testing is still required before v1.1 Stable.
+## Deliberately deferred
 
+- Visual/responsive redesign and symbology refinements.
+- Automated Data Export & Publication Pipeline (moved to v1.3).
+- Internal Admin Web Application (future version, not assigned to v1.2).
 
-### Site title
-- Updated the browser/page title to `Dead Sea Transform Historical Earthquakes`.
-- Updated the main visible site heading to `Dead Sea Transform Historical Earthquakes`.
+## Remaining before stable publication
 
-## v1.2 development — selected-earthquake map r5
-- Suppress records assigned to the `Unknown` site from the second map; report them separately as additional unassigned reports in event statistics/summary.
-- Normalize severity `U` to `Unknown` in user-facing popup/statistical displays, and sort Unknown last in statistical breakdowns.
-- Remove permanent site-name labels from the second map; site names remain available on marker hover.
-- Render valid HTTP/HTTPS values in the damage `Links` field as clickable links opening in a new browser tab in tooltips (both maps) and popups.
-- Harden `?embed=1` layout by explicitly forcing the accumulated map panel to fill the iframe viewport and re-invalidating/refitting the Leaflet map after embed initialization.
+1. Deploy the release candidate to GitHub Pages.
+2. Verify real Leaflet/PapaParse CDN loading and OpenStreetMap/CARTO/Esri basemap tiles.
+3. Verify both maps on the deployed site.
+4. Verify `?embed=1` using the deployed URL and production WordPress/iframe context.
+5. Create the final Git tag and GitHub Release for v1.2.
+6. Publish/update the Zenodo v1.2 record, then insert the version-specific DOI into `CITATION.cff` if desired.
