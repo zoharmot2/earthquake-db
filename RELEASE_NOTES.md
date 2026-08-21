@@ -1,34 +1,62 @@
-# Release Notes — Version 1.2
+# Release Notes — Version 1.3.0
 
-Version 1.2 expands earthquake-db from a single accumulated-effects map into a two-view interactive exploration interface and adds support for embedded deployment.
+## earthquake-db v1.3.0 — Administration Web Application Release
 
-## Highlights
+Version 1.3 is an administration-focused project release.
 
-- Added a selected-earthquake map in the second tab.
-- Added an earthquake selector with event-Confidence filtering.
-- Added selected-event damage and environmental-effect statistics.
-- Added independent layer toggles for the selected-earthquake map.
-- Added iframe-friendly Embed Mode activated with `?embed=1`.
-- Added compatibility with the expanded `v_damage_dst_unified.csv` schema.
-- Added user-facing `Refrences` and `Links` fields to damage popups and tooltips in both map views.
-- Added safe clickable rendering for HTTP/HTTPS links while retaining non-URL identifiers as plain text.
-- Added cache-busting version parameters for local CSS and JavaScript assets.
+The major v1.3 milestone is the replacement of the former Microsoft Access administration front end with a secure web-based administration application connected to the existing SQL Server / Enterprise Geodatabase.
 
-## Data in this release candidate
+The public GitHub Pages mapping application and the published CSV datasets are intentionally unchanged from v1.2 in this release. Further public-map development is deferred to the next version.
 
-- 1,000 sites.
-- 389 earthquake events.
-- 1,297 earthquake-damage records.
-- 241 environmental-effect records.
+## Administration milestone
 
-Compared with v1.1, the event and environmental-effect CSVs are unchanged. The current validated data contain one fewer site and one fewer damage record; mapped site counts remain 518 damage sites and 171 environmental-effect sites.
+The v1.3 administration application provides:
 
-## QA
+- authenticated username/password access;
+- Administrator and Editor roles;
+- Events search, view, create, and edit workflows;
+- Damage & Environmental Effects search, view, create, and edit workflows;
+- SDE-safe OBJECTID allocation through the existing `dbo.next_rowid` procedure;
+- concurrency-safe application-managed business-ID allocation;
+- authoritative Site selection and Save-time Site revalidation;
+- `No Effect (Id=15)` defaults for both required environmental-effect fields on new Damage records;
+- a public read-only Spatial Data viewer;
+- a separate private ArcGIS spatial editing workflow for Sites and geometry;
+- Administrator user management;
+- read-only lookup viewing and System Health;
+- production deployment behind IIS/HTTPS with server-side authentication and database credentials.
 
-Final pre-release functional QA passed with no v1.2 regression blocker identified. Tested functionality included both map views, confidence filtering, layer toggles, site search, reset, About dialog, earthquake selection, selected-event statistics, popup/tooltip rendering, Embed Mode, iframe behavior, and the `Refrences`/`Links` schema extension.
+The scientific SQL Server / Enterprise Geodatabase schema was not altered for this release.
 
-Visual and responsive design refinement is intentionally outside the v1.2 release scope and is deferred to later versions.
+## Public application and data
 
-## Remaining release steps
+The v1.2 public-map functionality is retained without functional modification in v1.3:
 
-Before publication, perform the external deployment check on GitHub Pages, create the GitHub v1.2 release/tag, and publish the v1.2 Zenodo record with its final version-specific DOI and links.
+- accumulated damage/environmental-effects map;
+- earthquake-specific map;
+- event Confidence filtering;
+- selected-event statistics and layer controls;
+- `?embed=1` embed mode;
+- expanded `v_damage_dst_unified.csv` compatibility;
+- `Refrences` and `Links` display;
+- safe HTTP/HTTPS link rendering.
+
+The published CSV datasets are unchanged from the v1.2 public release.
+
+## Deferred to the next release
+
+- further public-map/application development and integration;
+- additional public UI/visual refinement;
+- generic lookup editing in the administration application;
+- database index/performance maintenance;
+- other non-critical enhancements identified during routine use.
+
+## Reproducibility and citation
+
+The public repository remains the versioned release point for the earthquake-db project and is archived through Zenodo.
+
+Please cite the specific Zenodo DOI assigned to v1.3.0 when using this release.
+
+## License
+
+Creative Commons Attribution 4.0 International (CC BY 4.0).

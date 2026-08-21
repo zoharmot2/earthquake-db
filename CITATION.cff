@@ -15,7 +15,8 @@ authors:
     given-names: "Jefferson"
     affiliation: "School of Environmental Sciences, University of Haifa"
     orcid: "https://orcid.org/0000-0002-2737-2635"
-version: "1.2.0"
+version: 1.3.0
+date-released: '2026-08-21'
 license: "CC-BY-4.0"
 keywords:
   - historical earthquakes

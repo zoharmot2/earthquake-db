@@ -1,5 +1,23 @@
 # Changelog
 
+
+## [1.3.0] - 2026-08-21
+
+### Added
+- Released the secure web-based administration application replacing the former Microsoft Access administration front end.
+- Added authenticated Administrator and Editor workflows for Events and Damage & Environmental Effects.
+- Added SDE-safe write handling using the existing `dbo.next_rowid` procedure.
+- Added the Spatial Data view/private-edit workflow, authoritative Site revalidation, and new-Damage `No Effect (Id=15)` defaults.
+
+### Changed
+- Advanced the overall earthquake-db project version to 1.3.0.
+- Updated release, citation, and Zenodo metadata for the administration-focused release.
+
+### Public application and data
+- Public GitHub Pages map functionality is unchanged from v1.2.
+- Published CSV datasets are unchanged from v1.2.
+- Further public-map development is deferred to the next release.
+
 ## v1.2.0
 
 ### Added

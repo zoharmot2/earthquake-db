@@ -1,6 +1,12 @@
-# earthquake-db v1.2
+# earthquake-db v1.3
 
-Version 1.2 extends the interactive earthquake-db web application while preserving the direct client-side CSV architecture introduced in v1.1.
+Version 1.3 is an administration-focused project release. The public web-mapping application retains the v1.2 functionality and direct client-side CSV architecture.
+
+## Version 1.3 release focus
+
+Version 1.3 is the **Administration Web Application release** for the earthquake-db project. The principal milestone is the replacement of the former Microsoft Access administration front end with a secure web-based administration system while preserving the existing SQL Server / Enterprise Geodatabase schema.
+
+The public GitHub Pages mapping application and published CSV datasets are intentionally unchanged from v1.2 in this release. The v1.2 public-map functionality remains the public baseline, and further public-map development is deferred to the next release.
 
 ## Run locally
 
@@ -23,7 +29,7 @@ Both map views load the authoritative repository CSV files directly from `data/`
 
 Keep these filenames unchanged. Replacing a CSV with a validated corrected version is reflected on the next browser reload.
 
-## Version 1.2 highlights
+## Public web application baseline (v1.2, retained in v1.3)
 
 - Retains the accumulated damage/environmental-effects map from v1.1.
 - Adds a second map for exploring damage and environmental effects by a selected earthquake.
